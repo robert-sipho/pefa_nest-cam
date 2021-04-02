@@ -3,7 +3,7 @@
 This folder contains work done to automatically detect objects in images using an object detection CNN. Here, we focus on detecting four main objects: **adults**, **nestlings**, **eggs**, and **leg bands**. The motivation of this work is to streamline the process of image transcription for projects implementing some form of nest monitoring using cameras. 
 
 
-# Project Outline
+### Project Outline
 
 The goal of the project is to demonstrate deep learning methods through application. The project is characterized by three main components:
 * Transfer learning to build a tailored object detector
@@ -13,11 +13,11 @@ The goal of the project is to demonstrate deep learning methods through applicat
 
 
 
-# Status
+## Status
 
-## Brood size
+### Brood size
 
-### Problem
+#### Problem
 Currently, the yolo estimation of chicks isn't accurate. This has to do with the fact that nestlings huddle together and appear as a white overexposed blob in the middle of the picture. I don't think a human could do better, but when humans evaluate images, we have the benefit of using information from previous images / nest visits. For example, if we know there were three distinct nestlings in an image from earlier in the day, and there's been no indication that a nestling has died since, we "smooth" the nestling counts in our mind and assume the white overexplosed blob of nestlings is in fact three individuals. Yolo doesn't have that luxury, since it has to provide us with data for each image independantly. For example:
 
 <p float="center">
