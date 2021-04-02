@@ -1,0 +1,312 @@
+---
+title: "modeling_nest_attendance"
+author: "Erik Hedlin"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_nest-cam/R")
+```
+
+### Load Libraries to start
+
+```{r}
+library(R2jags)
+library(tidyverse)
+library(tidybayes)
+library(nuwcru)
+dat <- read_csv("data/03_0-20.csv") %>% select(-X1)
+
+# some issues with 2014
+dat <- dat %>% filter(b_age > 0 & b_age < 16 & year != 2014) 
+
+```
+
+## Introduction
+
+The purpose of this notebook is to explore different methods of modeling nest attendance data. Many components of the nest attendance data is correlated with previous time steps, and we may need to explore various timeseries options to deal with this - most of which are unfamiliar to me.
+
+A potential application of the timeseries framework is to investigate lag-effects in rainfall events. If there is a large rain event on day one for example, we may see an impact on day 2 even though it's no longer raining on day 2. What happens if it *is* raining on day 2 as well, is there a compounding effect of multiple days of rain?
+
+To begin, let's think about the lag effect of precipitation. It's straight-forward to think about how adults might respond to a rain event on the day that it's happening. When it's raining, we'd naturally predict an adult to spend more time at the nest brooding and sheltering their young. This of course comes at a cost. Every minute spent at the nest is one less minute adults can spend aquiring food. This may not be an issue when the nestlings are young, small, and require relatively little energy input, but the cost grows as nestlings get bigger and need more food. Considering this cost, we may expect that an adult may compensate on the following day once the rain stops. Maybe they'll spend more time aquiring food, and less time at the nest. In this case, the lag effect of rain may have the opposite impact on nest attendance compared to when the event is actually happening. In other words, a rainy day causes increased nest attendance, but the lag effect causes decreased nest attendance.
+
+Let's take a look.
+
+Our data describes nest attendance at the daily scale. So, the column `prop` is the proportion of time the adults have spent at the nest in a given day, and that's what we'll use as the response variable. We also have a number of other columns we can use as explanatory variables:
+
+```{r}
+colnames(dat)
+```
+
+To start, let's simply look at the proportion of each day adults spent at the nest across brood age. Let's look at a couple of nests to get a good feel for the data. We've only included brood ages 0-15 since we can't be certain that adults and nestlings are in view of the camera beyond that age.
+
+```{r}
+dat %>% filter(year == 2015 & site %in% c(1,4,8)) %>% 
+  mutate(precip_prop = precip/max(precip, na.rm = TRUE)) %>%
+  mutate(b_prop = b_size/4) %>%
+  mutate(b_weight_prop = b_weight / max(b_weight, na.rm = TRUE)) %>%
+  ggplot() +
+  geom_segment(aes(x = b_age, xend = b_age, y = 0, yend = precip_prop), colour = blue5, size = 3) +
+  geom_line(aes(x = b_age, y = b_weight_prop), colour = grey7) +
+  geom_point(aes(x = b_age, y = b_weight_prop), shape = 21, fill = grey7, colour = "white") +
+  geom_line(aes(x = b_age, y = prop)) +
+  geom_point(aes(x = b_age, y = prop), shape = 21, fill = "black", colour = "white", size = 2) +
+  facet_grid(site~.) +
+  xlab("brood age") + ylab("proportion of time at the nest") +
+  theme_nuwcru() + theme(axis.text.y = element_blank())
+```
+
+Here we directly plot the relationship between brood age, mean time spent at the nest per day, and precipitation:
+
+```{r warning=FALSE}
+
+dat %>% 
+  group_by(b_age, precip) %>% 
+  # calculate the mean nest attendance at each level of brood age and precipitation
+  summarize(mean_prop = mean(prop)) %>%
+  
+  # and plot
+  ggplot() +
+    geom_point(aes(x = b_age, y = mean_prop, size = precip), alpha = 0.4) + 
+    xlab("brood age") + ylab("proportion of time at the nest") +
+    theme_nuwcru() 
+
+```
+
+Since large points indicate heavier rain, and we expect greater rainfall amounts to promote nest attendance, we would therefore expect that larger points would gravitate upwards near the value 1. It's difficult to see if there's an effect of precipitation on nest attendance here.
+
+Looking at these figures makes me realize something however. It is quite possible that adults don't make the "right" decision (excuse the poor word choice), or in more some cases, are constrained against making the right decision. Take the large points at the bottom right of the figure for example. These points indicate days in which there was a large rainfall event, and adult pefa were hardly present at the nest. Based on what we know about rain and nestling survival, it's likely that there was a cost to this decision, and that cost is nestling mortality. Without knowing the context, we can imagine a number of scenarios that result in parents being away from the nest during heavy rain; one of them being the fact that food limitation is pronounced, and the parents are trying their hardest to provide
+
+If we were to model the relationship in the figure alone, maybe we wouldn't see a strong relationship between adult behaviour and rain, but if we jointly model the reprocussions associated with these behaviours, we would tell a more detailed and meaningful story.
+
+Multivariate timeseries?
+
+Simultaneous Equation Model?
+
+# Modelling
+
+## Beta Binomial Distribution
+
+Considering the beta binomial distribution is a tricky one, let's start things off as simply as possible. The bare minimum we want in our model will be the following.
+
+-   Beta binomial distribution since we're dealing with proportions
+
+-   random intercept for year, and brood (brood nested in year)
+
+-   Various covariates related to our response
+
+It's likely that we'll need to account for temporal correlations, but we can add that once we have a good foundation.
+
+Although the following varies depending on what source you're reading, the shape of the beta binomial distribution is typically governed by two parameters, a and b, as follows:
+
+$$
+\frac{y^{a-1} * (1-y)^{b-1}}{B(a, b)}
+$$
+
+Where B is a beta function that computes the normalizing constant.
+
+The mean of this distribution is:
+
+$$
+\mu = \frac{a}{a + b}
+$$
+
+The spread of the distribution is:
+
+$$
+k = a + b
+$$
+
+SD of the beta distribution is:
+
+$$
+\sigma = \sqrt{( \mu(1 - \mu) / (k + 1) )}
+$$
+
+Using McElreath's custom dbeta2 function, we can investigate how mu and theta affect the distribution's shape.
+
+#### Shape and parameters of the beta distribution
+
+```{r}
+# get a feel for paramter values here
+mu <- 0.7
+theta <- 10
+curve( rethinking::dbeta2(x, mu, theta) , from = 0 , to = 1 ,
+   xlab="probability" , ylab="Density" )
+abline(curve( rethinking::dbeta2(x, mu, theta) , from = 0 , to = 1 ,
+   xlab="probability" , ylab="Density" ))
+```
+
+Going back to the original description of the distribution's shape, our **likelihood** would look like:
+
+$$
+\begin{align}
+y_t &\sim Beta(a_t, b_t) \\
+\mu_t &= \frac{a_t}{a_t + b_t} \\
+a_t &= \mu_t * \theta \\
+b_t &= (1 - \mu_t) * \theta \\
+logit(\mu_t) &= \alpha + \beta*X_i
+\end{align}
+$$
+
+**Parameters**:
+
+$$
+\begin{align}
+y_t &= \textrm{response variable for observation } t=1...N \\
+\alpha, \beta &= \textrm{intercept and slope} \\
+\theta &= \textrm{shape of beta distribution} \\
+\end{align}
+$$
+
+**Priors** - vague for now, but we can maybe explore this with prior predictive checks.
+
+$$
+\begin{align}
+\alpha &\sim Normal(0,10) \\
+\beta &\sim Normal(0,10) \\
+\theta &\sim Uniform(0,50) \\
+\end{align}
+$$
+
+One requirement of the beta distribution is it's bounded by 0 and 1, and y cannot equal either 0 or 1.
+
+```{r}
+range(dat$prop)
+```
+
+we have zeros and 1's in our data so we'll need to use zero / one inflated beta regression.
+
+```{r}
+dat$prop <- ifelse(dat$prop == 0, dat$prop+0.001, dat$prop)
+dat$prop <- ifelse(dat$prop == 1, dat$prop-0.001, dat$prop)
+hist(dat$precip)
+```
+
+And for the Jags model. First specifiy the data (scaling where necessary), then program the model, and then run 5,000 iterations with a 4K burnin, and update it with an additional 10K. This isn't much, but the model starts to converge around parameter estimates at this point and it's taking a long time. For the paper we'll run more, but this is good enough for exploration.
+
+```{r}
+# data for Jags model
+model_data = list(N      = nrow(dat), 
+                  y      = dat$prop, 
+                  precip = as.vector(scale(dat$precip)),   # scale
+                  precip_lag1 = dat$precip_lag1,
+                  weight = as.vector(scale(dat$b_weight)), # scale
+                  year   = as.factor(dat$year),
+                  nyears = length(unique(dat$year)))
+
+
+model_code = '
+model
+{
+  # Likelihood
+  for (i in 1:N) {
+    y[i] ~ dbeta(a[i], b[i])
+    a[i] <- mu[i] * phi
+    b[i] <- (1 - mu[i]) * phi
+    logit(mu[i]) <- alpha + beta_precip * precip[i]
+  }
+
+  # Priors
+  alpha ~ dnorm(0, 10^-2)
+  beta_precip ~ dnorm(0, 10^-2)
+  phi ~ dunif(0, 10)
+}
+'
+
+model_parameters =  c("alpha",
+                      "beta_precip",
+                      "phi")
+
+model_run = jags(data = model_data,
+                 parameters.to.save = model_parameters,
+                 model.file=textConnection(model_code))
+
+model_run   <- jags(data    = model_data,
+                 inits      = NULL,     
+                 parameters = model_parameters,
+                 model.file = textConnection(model_code),
+                 n.thin     = 10, 
+                 n.chains   = 3,
+                 n.burnin   = 4000,
+                 n.iter     = 5000)
+
+m2 <- update(model_run, n.iter = 10000, n.thin = 10) 
+
+```
+
+### Model Diagnostics
+
+```{r}
+
+# mixing
+mcmc %>%
+  window(thin=10) %>% 
+  tidybayes::gather_draws(beta_precip, beta_preciplag, beta_weight, theta, a_bar, sigma_year) %>%
+  ungroup() %>%
+  ggplot(aes(x=.iteration, y=.value, color=as.factor(.chain))) +
+  scale_color_manual(values=c("#461220", "#b23a48", "#fcb9b2")) +
+  geom_line(alpha=0.5) +
+  facet_grid(.variable~., scale="free_y") +
+  labs(color="chain", x="iteration") +
+  theme_nuwcru()
+
+
+```
+
+### Fucking ZOIB
+
+So I had no clue Zero-one inflated beta regression was a thing, but since we have both 1's and 0's in our proportion data, we need to explicitly model them since beta prob distribution doesn't allow it.
+
+Despite how much I dislike the complication, the idea is to model the response variable as a mixture of Bernoulli and beta distributions. The probability density function is:
+
+$$
+f_{\mathrm{ZOIB}}(y ; \alpha, \gamma, \mu, \phi)=\left\{\begin{array}{lr}\alpha(1-\gamma) & y=0 \\\alpha \gamma & y=1 \\(1-\alpha) f(y ; \mu, \phi) & 0<y<1\end{array}\right.
+$$
+
+where:
+
+\$\$ \begin{align}
+\alpha &= \textrm{a mixture parameter that determines the extent to which the bernoulli or beta component dominates the pdf} \\
+\gamma &= \textrm{determines the probability that } y=1 \textrm{ if it comes from the bernoulli component} \\
+\mu \textrm{ and } \phi &= \textrm{the expected value and the precision for the beta component which is parameterized in the above section as } a \textrm{ and } b 
+\end{align}
+
+\$\$
+
+Programming this mdoel in Jags requires specifying separate likelihoods for \alpha , \gamma , and \mu / \tau. As such, we can model each of the parameters with different functions, but I'll them all using the same covariates, since 0's and 1's arise from the same process as the beta portion of the model.
+
+```{r}
+nrow(dat %>% filter(prop == 0)) # 2
+nrow(dat %>% filter(prop == 1)) # 340
+```
+
+## Flavours of timeseries
+
+<https://bookdown.org/ccolonescu/RPoE4/time-series-stationary-variables.html>
+
+### Finite Distributed Lags
+
+Linear relationship between response variable and and several lags of an independent variable:
+
+$$
+y_{t} = \alpha + \beta_{0}x_{t} + \beta_{1}x_{t-1} + ...+\beta_{q}x_{t-q} + \epsilon_{t}
+$$
+
+### Simultaneous Equation Models
+
+### VEC and VAR models
+
+### Time Varying Volatility and ARCH
+
+asldfkjasl;dkfjalsdfjasdkfjhiief
+
+;adsfjadsfh
+
+```{r}
+dat <- read_csv("data/")
+
+
+```

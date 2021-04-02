@@ -1,0 +1,100 @@
+\section{Methods}
+% NOTES FROM CAHILL
+% Relate everything you talk about to the research qustions described above
+% Do not swap the order, such that if you list questions 1, 2, 3 in the intro, do not discuss the methods as 3, 2, 1
+% When you discuss stat methods, be sure to relate each test to a specific research objective. If the test is complciated, let the reader know what type of stat result would indicate what type of answer to your question.
+ 
+ 
+ 
+ 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\subsection{Study Area}
+
+The study area is located on the western coast of Hudson Bay, and encompasses a 422 km\textsuperscript{2} area that surrounds the community of Rankin Inlet, Nunavut, Canada (62°49'N, 92°05'W)(Figure 1). 
+The terrestrial portion is characterized by rolling mesic tundra interspersed with numerous lakes and streams, and supports communities of passerines, shorebirds, ducks, geese, and small mammals. 
+The marine portion is composed of numerous islands of varying size and also supports diverse bird communities, in addition to small mammals. 
+Rocky outcrops that form cliffs are common throughout both terrestrial and marine areas, and provide ideal nesting habitat for raptor species such as Rough Legged Hawks (\textit{Buteo lagopus}), Peregrine Falcons (\textit{Falco peregrinus}), Common Ravens (\textit{Corvus corax}) occasionally Golden Eagles (\textit{Aquila chrysaetos}), and Gyrfalcons (\textit{Falco rusticolus}).   
+ 
+ 
+ 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\subsection{Peregrine Monitoring}
+
+Peregrine Falcon population monitoring was conducted over five breeding seasons from 2013 to 2017.
+Site occupancy surveys began in May as peregrines arrived on site from migration.
+Regardless of whether or not we detected breeding pairs, all suitable territories were monitored until the season had advanced sufficiently into the incubation period and we could confidently conclude that vacant sites would remain vacant.
+
+
+ 
+ 
+ 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\subsection{Camera Work}
+
+To capture lay dates, hatch dates, causes of nestling mortality, and parental behaviour throughout the breeding season, motion sensitive cameras (RECONYX, Holmen Wisconsin, USA, models PC85 and PC800, 2013 n=11, 2014 n=22, 2015 n=22, 2016, 2017)  %%%%%%%% FILL IN YEARS %%%%%%%%%%
+were placed 60 - 200 cm from the nest bowl. 
+Although we aimed to visit nests every 5 days to replace camera batteries, many of the nesting territories are difficult to access during inclement weather. 
+As such, camera settings such as motion sensitivity and the duration of time between timelapse images, were tailored to each site to preserve battery power in the event that we could not return in five days.
+Typical camera settings for accessible nest sites included timelapse images every 15 minutes regardless of motion, three rapid pictures when the camera was triggered by motion, followed by a quiet period of 5 seconds within which the camera did not respond to movement, while typical camera settings for difficult to access sites included only one image captured when motion was detected, and a duration of 5 minutes between time-lapse images.
+Although the camera settings resulted in fewer captured images for difficult to access sites, the images were more evenly spaced and effectively surveyed events of interest at the nest site.
+
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\subsection{Transfer Learning}
+
+ Data outputed by the CNN is binary, with a 1 provided when a certain class of object is detected in an image.
+
+ 
+ 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\subsection{Modeling}
+
+ 
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Convert to proportion
+To investigate nest attendance among breeding pairs of peregrine falcons, we first converted the presence absence data outputed by the Convolutional neural networks into the proportion of each day adults were at the scrape.
+Depending on the extent of motion, the images captured by remote cameras are often irregular.
+Converting irregular series of images into a total proportion of time spent at the nest was completed by first generating an empty dataframe that contained a row for each minute within each day. 
+The cell correpsonding to a nest site in a given minute was filled with a `1' if the CNN detected an adult at any time within that minute.
+If no images were captured within that minute, we assumed the value of the previous minute in which an image was captured still applied.
+If no images had been captured during the amount of time correpsonding to timelapse intervals (15m), no value was carried forward.
+This method assumes that the cameras reliably detected occupancy state changes at a nest, or in other words, cameras reliably captured the arrival and departure adults.
+Since arrivals and departures cause substantial motion (going from perched to flight), we are confident this is a safe assumption.
+
+Nestlings explore the cliff surrounding the scrape as they grow, and at a certain point, we can no longer be certain that cameras are reliably capturing nest attedance.
+% FILL <- 
+To protect against possible bias oirignating from nestling movement, we truncated our data at a total brood age of 15 days.
+ 
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Model
+
+$$
+\begin{align}
+y_i &\sim Beta(a_i, b_i) \\
+%\mu_i &= \frac{a_i}{a_i + b_i} \\
+a_i &= \mu_i * \theta \\
+b_i &= (1 - \mu_i) * \theta \\
+logit(\mu_i) &= \alpha + \beta*X_i
+\end{align}
+$$
+
+To model the daily proportion of time adults attended nests, we programmed a generalized linear mixed model with a beta-binomial probability distribution and logit link function in R using R2jags \cite{}. 
+% FILL <- 
+Daily proportions are potentially autocorrelated, so we investigated various residual varince structures to estimate correlation between timesteps.
+Data was repeat measures, so we included nested random intercepts with brood nested in year.
+We suspected that adult nest attendance is related to yearly conditions, and therefore estimated random slopes for year.
+Lastly, we included various combinations of fixed effects that we suspected were important in explaining nest attendance. 
+All priors were specified as diffuse, and we employed a workflow that followed \cite{} % bayesian workflow, gelman et al.
+
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% fixed effects
+
+% weather
+Daily climate data included in the models were obtained from an Environment Canada weather station positioned in a central location in the study area. 
+
+% nestling data
+All nestling data was gathered every 5 days as part of routine nest visits, and this included nestling weights, brood size, and brood age (as determined by the age of the oldest nestling).
+

@@ -1,0 +1,28 @@
+{
+    "id": "C9BB797A",
+    "path": "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_nest-cam/R/scripts/03_merge_and_model.R",
+    "project_path": "scripts/03_merge_and_model.R",
+    "type": "r_source",
+    "hash": "1236476012",
+    "contents": "",
+    "dirty": false,
+    "created": 1614827336734.0,
+    "source_on_save": false,
+    "relative_order": 9,
+    "properties": {
+        "source_window_id": "w4rrd1etlnwyp",
+        "Source": "Source",
+        "cursorPosition": "11,0",
+        "scrollLine": "0",
+        "docOutlineVisible": "1",
+        "docOutlineSize": "137"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1617326150,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1617326150946,
+    "read_only": false,
+    "read_only_alternatives": []
+}
