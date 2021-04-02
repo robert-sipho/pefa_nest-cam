@@ -2,18 +2,30 @@
 
 This folder contains work done to automatically detect objects in images using an object detection CNN. Here, we focus on detecting four main objects: **adults**, **nestlings**, **eggs**, and **leg bands**. The motivation of this work is to streamline the process of image transcription for projects implementing some form of nest monitoring using cameras. 
 
+<br>
+<br>
+
 
 ### Project Outline
 
 The goal of the project is to demonstrate deep learning methods through application. The project is characterized by three main components:
-* Transfer learning to build a tailored object detector
-* Use resulting CNN to process nest camera footage
-* Use processed photos to make inference about nest attendance behaviour
+- [x] Build a tailored object detector
+- [x] Use resulting CNN to process nest camera footage
+- [ ] Use processed photos to make inference about nest attendance, and links to weather and brood state 
+
+
+
+<br>
+<br>
+<br>
+
 
 
 
 
 ## Status
+
+CNN has been trained and is achieving 95% accuracy with adults, eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. 
 
 ### Brood size
 
@@ -39,4 +51,10 @@ Binarize nestlings. Many nest-fate models do this anyways, and incorporate broad
 
 #### Option 4
 Implement a multievent model. Detecting nestlings on camera fits well with a mark-recap framework, and if we can successfully inject measurement error into the recaps, we could potentially automate the whole process (idea inspired by [this paper](https://link.springer.com/article/10.1007/s10336-011-0723-0))
+
+
+
+<br>
+<br>
+<br>
 
