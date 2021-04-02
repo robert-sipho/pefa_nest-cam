@@ -1,4 +1,4 @@
-# Inferring parental behaviour from nest cameras and deep learning
+## Automating image processing using CNNs, and exploring the tradeoffs of automation
 
 This folder contains work done to automatically detect objects in images using an object detection CNN. Here, we focus on detecting four main objects: **adults**, **nestlings**, **eggs**, and **leg bands**. The motivation of this work is to streamline the process of image transcription for projects implementing some form of nest monitoring using cameras. 
 
