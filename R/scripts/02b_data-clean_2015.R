@@ -130,15 +130,7 @@ all_t <- all_2015 %>% mutate(adult    = rowSums(.[5:40] == "adult", na.rm = TRUE
 
 # nestling work -----------------------------------------------------------
 
-
-
-x <- all_2015[which(all_t$nestling > 0),]
-piv1 <- x %>%
-  select(Class1:height6, Image_name) %>%
- mutate_at(vars(2:35), as.character) %>%
-  pivot_longer(Class1:height6,
-               values_transform = list(Percent1 = as.character))
-
+@
 nestling_info <- piv1[which(piv1$value == "nestling"),]
 nestling_info[,4] <- piv1[which(piv1$value == "nestling")+1,3]
 nestling_info[,5] <- piv1[which(piv1$value == "nestling")+2,3]
@@ -157,32 +149,33 @@ nestling_wide <- nestling_info %>%
   pivot_wider(id_cols = Image_name, names_from = name, values_from = lik:height)
 
 
-test <- all_t %>% 
+nestling_2015 <- all_t %>% 
   rename("Image_name" = "file") %>%
-  left_join(nestling_wide, by = "Image_name")
+  left_join(select(nestling_wide, Image_name, starts_with("lik")), by = "Image_name") %>%
+  mutate_at(vars(starts_with("lik")), ~replace_na(., 0)) 
+
+nestling_2015[,11:ncol(nestling_2015)] <- sapply(nestling_2015[,11:ncol(nestling_2015)],as.numeric)
+
+  
 
 
+arrow::write_parquet(nestling_2015, "data/02_nestling_likelihoods_2015.parquet")
 
 
-
-
-
-
-
-
-View(all_t %>% filter(site == 89) %>% group_by(month(date), day(date), adult) %>% summarize(sum = sum(nestling)) %>% filter(`day(date)` > 16 & `day(date)` < 26 & `month(date)` == 7))
-
-
-filter(date > as.Date("2015-07-23"))
 
 
 arrow::write_parquet(all_t, "data/02_alldata_2015.parquet")
 all_t <- arrow::read_parquet("data/02_alldata_2015.parquet")
 
 # *visual* number of pictures taken each day ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+brood <- read_csv("data/03_daily_survival.csv") %>% filter(year == 2015) %>%
+  filter(age == 1)
+
 all_t %>% mutate(date = date(date)) %>% group_by(site, date) %>% summarize(sum = sum(adult), count = n()) %>% mutate(prop = sum/count) %>%
   ggplot() +
   geom_segment(aes(x = date, xend = date, y = 0, yend = count, group = site), size = 2) +
+  geom_point(data = brood, aes(x = date, y = 10),color = nuwcru::red2, size = 2) +
   #scale_x_date(date_breaks = "2 weeks",
   # date_labels = "%B %d") +
   facet_grid(site~.) +
