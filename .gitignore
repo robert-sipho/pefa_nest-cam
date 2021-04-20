@@ -8,3 +8,6 @@ python/verification_gui/completed_2/
 python/verification_gui/completed_3/
 python/verification_gui/completed_4/
 python/verification_gui/completed_5/
+
+*.synctex.gz
+*.log
