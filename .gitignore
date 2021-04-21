@@ -1,11 +1,7 @@
 # unique to this project
 *.parquet
-python/verification_gui/completed_1/
-python/verification_gui/completed_2/
-python/verification_gui/completed_3/
-python/verification_gui/completed_4/
-python/verification_gui/completed_5/
-python/verification_gui/mistakes/
+python/verification_gui/images
+
 
 *.synctex.gz
 *.log
