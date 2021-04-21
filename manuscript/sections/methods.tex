@@ -70,15 +70,15 @@ To protect against possible bias oirignating from nestling movement, we truncate
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % Model
 
-$$
-\begin{align}
-y_i &\sim Beta(a_i, b_i) \\
-%\mu_i &= \frac{a_i}{a_i + b_i} \\
-a_i &= \mu_i * \theta \\
-b_i &= (1 - \mu_i) * \theta \\
-logit(\mu_i) &= \alpha + \beta*X_i
-\end{align}
-$$
+% $$
+% \begin{align}
+% y_i &\sim Beta(a_i, b_i) \\
+% %\mu_i &= \frac{a_i}{a_i + b_i} \\a
+% a_i &= \mu_i * \theta \\
+% b_i &= (1 - \mu_i) * \theta \\
+% logit(\mu_i) &= \alpha + \beta*X_i
+% \end{align}
+% $$
 
 To model the daily proportion of time adults attended nests, we programmed a generalized linear mixed model with a beta-binomial probability distribution and logit link function in R using R2jags \cite{}. 
 % FILL <- 
