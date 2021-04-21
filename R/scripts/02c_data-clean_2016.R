@@ -113,7 +113,8 @@ all_t <- all_2016 %>% mutate(adult    = rowSums(.[,2:35] == "adult", na.rm = TRU
   select(Image_name, "site" = "meta_site", date, month, yday, hour, adult, nestling, sband, bband, eggs) %>% drop_na(site) #%>%
 
 arrow::write_parquet(all_t, "data/02_alldata_2016.parquet")
-
+test <- arrow::read_parquet("data/02_alldata_2016.parquet")
+head(test)
 
 # Nestling work -----------------------------------------------------------
 

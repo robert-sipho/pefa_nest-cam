@@ -42,7 +42,7 @@ meta_2015$source_site <- str_sub(meta_2015$Image_name,
                                  str_locate(meta_2015$Image_name, "/2015")[,1]-1) 
 meta_2015$source_site <- str_sub(meta_2015$source_site, 0, 8)
 
-meta_2015$source_site <- as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$source_site))
+meta_2015$source_site <- 'as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$source_site))
 
 
 meta_2015$meta_site <- as.numeric(ifelse(is.na(meta_2015$date), NA, as.character(as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$site)))))

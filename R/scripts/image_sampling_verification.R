@@ -23,7 +23,8 @@ for (i in 1:length(results)){
   x[[i]]$path <- str_sub(results[i], 0, str_locate(results[i], "output")[,1]-1)
 }
 df <- bind_rows(x)
-df <- df %>% filter(adults != "unk")
+df <- df %>% filter(adults != "unk") %>%
+  mutate(source = paste0(path,image))
 dim(df)
 
 
@@ -73,25 +74,27 @@ exif_no_ul <- exif %>%
            str_sub(.,6,-1) %>%
            lubridate::parse_date_time(., '%y-%m-%d %I:%M:%S %p')) %>%
   filter(site != "Lbl: PC85 RAPIDFIRE PRO") %>%
-  select(-Comment)
+  select(-Comment, -UserLabel)
 
-x <- exif %>%
+exif_ul <- exif %>%
   select(Directory, FileName, UserLabel, CreateDate) %>% 
   filter(!is.na(UserLabel) & !str_detect(UserLabel, "PC")) %>%
   mutate(site = parse_number(UserLabel),
          date = lubridate::parse_date_time(CreateDate, '%Y:%m:%d %H:%M:%s')) %>%
-  select(site, date)
-  x
-  
+  select(Directory, FileName, site, date)
 
-  
-names(exif)
+meta <- bind_rows(exif_ul,exif_no_ul) %>% 
+  mutate(source = paste0(Directory,"/", FileName)) %>%
+  select(-Directory,-FileName) %>%
+  right_join(df, by = "source") %>%
+  select(-path, -image)
 
-  
+
+# 3. match results --------------------------------------------------------
+
+predictions <- arrow::read_parquet("data/02_alldata_2016.parquet")
 
 
-df %>%
-  bind_cols(exif$UserLabel, exif$Comment)
-exif %>%
-  select(Directory)
- 2016-08-12 6:04:27 AM
+
+
+
