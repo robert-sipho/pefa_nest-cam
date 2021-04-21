@@ -4,13 +4,60 @@ library(tidyverse)
 
 # 2015 --------------------------------------------------------------------
 
-d <- arrow::read_parquet("/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_image-class/R/data/metadata/meta_2015.parquet")
+d <- arrow::read_parquet("/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_image-class/R/data/metadata/meta_2016.parquet")
 head(d)
-
 
 d$dir <- str_sub(d$SourceFile, str_locate(d$SourceFile, "//")[,1]+2) %>%
   str_sub(0, str_locate(., "/")[,1]-1)
-unique(d$dir)
+
+
+  
+comment <- d %>% 
+  filter(!is.na(Comment)) %>%
+  # Site
+  mutate(site = stringr::str_split(Comment, "\r") %>% map_chr(., 14) %>% str_sub(.,6)) %>%
+  filter(!str_detect(site,"RAPIDFIRE")) %>%
+  mutate(site = parse_number(site)) %>%
+  # Date
+  mutate(date = stringr::str_split(Comment, "\r") %>% 
+           map_chr(., 3) %>% 
+           str_sub(.,6,-1) %>%
+           lubridate::parse_date_time(., '%y-%m-%d %I:%M:%S %p')) %>%
+  select(-Comment)
+
+no_comment <- d %>% 
+  filter(is.na(Comment)) %>%
+  mutate(site = parse_number(dir),
+         date = str_replace(FileModifyDate, "-06:00","")) %>%
+  mutate(date = parse_date_time(date, '%Y:%m:%d %H:%M:%S')) %>%
+  select(-Comment)
+
+
+
+# In 2016 there is some data with no comment
+test <- d %>% 
+  filter(!is.na(Comment)) %>%
+  # Site
+  mutate(site = stringr::str_split(Comment, "\r") %>% map_chr(., 14) %>% str_sub(.,6)) %>%
+  filter(str_detect(site,"RAPIDFIRE")) %>%
+  mutate(site = parse_number(dir),
+         date = str_replace(FileModifyDate, "-06:00","")) %>%
+  mutate(date = parse_date_time(date, '%Y:%m:%d %H:%M:%S')) %>%
+  select(-Comment)
+
+
+
+
+test
+
+meta_2016 <- bind_rows(test,comment,no_comment) %>%
+  select(-FileModifyDate,-dir)
+a <- meta_2016[1550000,]
+
+View(a)
+arrow::write_parquet(meta_2016, "data/00_meta/clean_meta_2016_new.parquet")
+
+
 
 list <- d %>% group_by(dir) %>% group_split()
 
@@ -42,7 +89,7 @@ meta_2015$source_site <- str_sub(meta_2015$Image_name,
                                  str_locate(meta_2015$Image_name, "/2015")[,1]-1) 
 meta_2015$source_site <- str_sub(meta_2015$source_site, 0, 8)
 
-meta_2015$source_site <- 'as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$source_site))
+meta_2015$source_site <- as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$source_site))
 
 
 meta_2015$meta_site <- as.numeric(ifelse(is.na(meta_2015$date), NA, as.character(as.numeric(gsub(".*?([0-9]+).*", "\\1", meta_2015$site)))))

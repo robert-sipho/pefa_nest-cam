@@ -3,8 +3,9 @@ library(exifr)
 
 # a script to 
 #   1. load verified image results (manual classification)
-#   2. extract identification info via exif data
-#   3. match manual results with yolo predictions
+#   2. run the verified images through yolo
+#   3. clean yolo outs
+#   4. join the two datasets and examine errors
 #   4. calculate accuracy across settings (night, day, etc...)
 
 
@@ -24,14 +25,139 @@ for (i in 1:length(results)){
 }
 df <- bind_rows(x)
 df <- df %>% filter(adults != "unk") %>%
-  mutate(source = paste0(path,image))
+  mutate(source = paste0(path,image)) %>%
+  filter(image != ".DS_Store")
 dim(df)
 
 
-# 2. extract exif ---------------------------------------------------------
+# 2. Run model on verification set ---------------------------------------------------------
 
-files <- paste0(df$path)
-exif <- read_exif(source, recursive = TRUE)
+# Copy files over to hard drive to move to jetson
+dest <- '/Volumes/NUWCRU_DATA/2016/'
+file.copy(df$source,dest)
+
+
+# Read in results
+results <- readtext("/Volumes/NUWCRU_DATA/2016_verification_results.txt")$text # read in text file
+
+
+# create line breaks at the word "enter", since this is where the data for each image begins
+t <- str_split(toString(results), "Enter ")
+t <- t[[1]][2:length(t[[1]])]
+t <- tibble(col = unlist(t))
+x <- data.frame(do.call('rbind', strsplit(t$col,'s.',fixed=TRUE))) 
+x$X2 <- str_replace_all(as.character(x$X2), "\n", "")
+
+# maximum number of objects detected
+max(sapply(strsplit(as.character(x$X2),'%'), length))
+
+objects <- as.data.frame(str_split_fixed(x$X2, "%", 8))
+
+results <- as.data.frame(cbind(x$X1, objects))
+
+names(results)[1] <- "path"
+results <- results[1:nrow(results)-1,]
+
+# image name
+start <- str_locate(results$path, "/2016")
+end <- str_locate(results$path, ".JPG")
+images <- str_sub(results$path, start[,1]+1, end[,2])
+
+
+# date/other image attributes
+path <- str_replace(results$path, "Image Path: ", "")
+path <- str_replace(path, "/media/erik/", "/Volumes/")
+path_end <- str_locate(path, ": Predicted")
+path <- str_sub(path, 0, path_end[,1]-1)
+
+#path <- na.omit(path)
+#exif <- read_exif(paste0(path))
+#date <- exif$CreateDate
+#tm   <- exif$TriggerMode
+
+pefa_results <- data.frame(
+  path = path,
+  image = images,
+  #date = parse_date_time(date, "y:m:d h:M:s"),
+  #trigger = tm,
+  #ir = exif$InfraredIlluminator,
+  obj1 = as.character(results$V1),
+  obj2 = as.character(results$V2),
+  obj3 = as.character(results$V3),
+  obj4 = as.character(results$V4),
+  obj5 = as.character(results$V5),
+  obj6 = as.character(results$V6),
+  obj7 = as.character(results$V7),
+  obj8 = as.character(results$V8)
+)
+
+
+ad <- pefa_results
+
+# sum the occurences of object detections
+ad$adult_pred <- Reduce(`+`, lapply(ad[-1], 
+                               function(x) lengths(str_extract_all(x, "adult"))))
+ad$nestling_pred <- Reduce(`+`, lapply(ad[-1], 
+                                  function(x) lengths(str_extract_all(x, "nestling"))))
+ad$eggs_pred <- Reduce(`+`, lapply(ad[-1], 
+                              function(x) lengths(str_extract_all(x, "eggs"))))
+ad$bband_pred <- Reduce(`+`, lapply(ad[-1], 
+                               function(x) lengths(str_extract_all(x, "bband"))))
+ad$sband_pred <- Reduce(`+`, lapply(ad[-1], 
+                               function(x) lengths(str_extract_all(x, "sband"))))
+
+
+dat <- ad %>% select(image, adult_pred:sband_pred) %>% filter(image != ".DS_Store")
+
+dat <- dat %>%
+  mutate(image = str_replace(image, "2016/", ""))
+combined <- dat %>% 
+  right_join(df, by = "image") %>%
+  select(image:sbands)
+
+diff <- combined %>%
+  mutate(adult_diff = as.numeric(adult_pred) - as.numeric(adults),
+         nestling_diff = as.numeric(nestling_pred) - as.numeric(nestlings),
+         eggs_diff = as.numeric(eggs_pred) - as.numeric(eggs),
+         bband_diff = as.numeric(bband_pred) - as.numeric(bbands),
+         sbands_diff = as.numeric(sband_pred) - as.numeric(sbands))
+  
+adult_diff <- diff %>% 
+  filter(adult_diff != 0) %>%
+  mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
+         new_image_name = paste0(adult_pred,"_","adults","_",image))
+
+nestling_diff <- diff %>% 
+  filter(nestling_diff != 0) %>%
+  mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
+         new_image_name = paste0(nestling_pred,"_","nestlings",image))
+
+bband_diff <- diff %>% 
+  filter(bband_diff != 0) %>%
+  mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
+         new_image_name = paste0(bband_pred,"_","bbands",image))
+
+# accuracy results
+abs(length(which(diff$adult_diff != 0)) / nrow(diff) * 100 - 100)
+abs(length(which(diff$eggs_diff != 0)) / nrow(diff) * 100 - 100)
+abs(length(which(diff$bband_diff != 0)) / nrow(diff) * 100 - 100)
+abs(length(which(diff$sband_diff != 0)) / nrow(diff) * 100 - 100)
+
+
+dest <- '/Volumes/NUWCRU_DATA/mistakes/adults/'
+dir.create(dest)
+file.copy(adult_diff$image_path, dest)
+file.rename(paste0(dest, adult_diff$image), paste0(dest,adult_diff$new_image_name))
+
+dest <- '/Volumes/NUWCRU_DATA/mistakes/nestlings/'
+dir.create(dest)
+file.copy(nestling_diff$image_path, dest)
+file.rename(paste0(dest, nestling_diff$image), paste0(dest,nestling_diff$new_image_name))
+
+dest <- '/Volumes/NUWCRU_DATA/mistakes/bband/'
+dir.create(dest)
+file.copy(bband_diff$image_path, dest)
+file.rename(paste0(dest, bband_diff$image), paste0(dest,bband_diff$new_image_name))
 
 # wrangle exif into:
 
@@ -92,8 +218,11 @@ meta <- bind_rows(exif_ul,exif_no_ul) %>%
 
 # 3. match results --------------------------------------------------------
 
-predictions <- arrow::read_parquet("data/02_alldata_2016.parquet")
+predictions <- arrow::read_parquet("data/02_alldata_2016_new.parquet") %>%
+  rename("adult_pred" = "adult", "nestlings_pred" = "nestling", "eggs_pred" =  "eggs", "bbands_pred" = "bband", "sbands_pred" = "sband")
 
+meta %>% left_join(predictions, by = c("site","date")) %>%
+  filter(is.na(sbands_pred))
 
 
 

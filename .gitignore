@@ -1,6 +1,7 @@
 # unique to this project
 *.parquet
 python/verification_gui/images
+python/verification_gui/verification_results
 
 
 *.synctex.gz

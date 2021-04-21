@@ -38,17 +38,18 @@ all_2016 <- do.call(rbind, lapply(f, arrow::read_parquet))
 
 
 # work with metadata so we can rename appropriate filenames ---------------
-meta <- arrow::read_parquet("data/00_meta/clean_meta_2016.parquet")
-head(meta)
+meta <- arrow::read_parquet("data/00_meta/clean_meta_2016_new.parquet")
 
+meta$SourceFile
 # match patterns in yolo outs with exifs
-meta$to_match <- str_sub(meta$Image_name, str_locate(meta$Image_name, "//")[,1]+2)
+meta$to_match <- str_sub(meta$SourceFile, str_locate(meta$SourceFile, "//")[,1]+2)
 all_2016$to_match <- str_sub(all_2016$Image_name, str_locate(tolower(all_2016$Image_name), "/site")[,1]+1)
 
 
-all_2016 <- all_2016 %>% left_join(meta, by = "to_match")
-unique(all_2016$meta_site)
-all_2016 %>% filter(is.na(meta_site)) # no NAs
+all_2016 <- all_2016 %>% 
+  left_join(meta, by = "to_match") %>%
+  mutate()
+
 
 
 # Date --------------------------------------------------------------------
@@ -104,15 +105,17 @@ all_2016$month <- month(all_2016$date)
 
 
 names(all_2016)
+
 # reduce data frame to number of detections
 all_t <- all_2016 %>% mutate(adult    = rowSums(.[,2:35] == "adult", na.rm = TRUE),
                              eggs     = rowSums(.[,2:35] == "eggs", na.rm = TRUE),
                              nestling = rowSums(.[,2:35] == "nestling", na.rm = TRUE),
                              sband    = rowSums(.[,2:35] == "sband", na.rm = TRUE),
                              bband    = rowSums(.[,2:35] == "bband", na.rm = TRUE))  %>% 
-  select(Image_name, "site" = "meta_site", date, month, yday, hour, adult, nestling, sband, bband, eggs) %>% drop_na(site) #%>%
+  # mutate(date = date + hours(2)) %>%
+  select(Image_name, site, date, adult, eggs, nestling, sband, bband, eggs) #%>% drop_na(site) #%>%
 
-arrow::write_parquet(all_t, "data/02_alldata_2016.parquet")
+arrow::write_parquet(all_t, "data/02_alldata_2016_new.parquet")
 test <- arrow::read_parquet("data/02_alldata_2016.parquet")
 head(test)
 
