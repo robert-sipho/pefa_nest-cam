@@ -1,46 +1,74 @@
-% see https://www.latextemplates.com/template/elseviers-elsarticle-document-class
-% for more options on this template
-
-
 \documentclass[preprint,review,12pt]{elsarticle}
 \usepackage{amssymb}
 \usepackage{lineno}
 \journal{Journal Name}
 
+% Colors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{xcolor}
+\definecolor{red1}{HTML}{620012} 
+\definecolor{red2}{HTML}{AD1520} 
+\definecolor{red3}{HTML}{C14D51} 
+\definecolor{red4}{HTML}{DA9193} 
+\definecolor{red5}{HTML}{F7DFE0} 
+
+\definecolor{blue1}{HTML}{004366} 
+\definecolor{blue2}{HTML}{095E89} 
+\definecolor{blue3}{HTML}{668092} 
+\definecolor{blue4}{HTML}{AFC0C9} 
+\definecolor{blue5}{HTML}{D0E0E8} 
+
+\definecolor{grey1}{HTML}{191919} 
+\definecolor{grey2}{HTML}{424242} 
+\definecolor{grey3}{HTML}{5E5E5E} 
+\definecolor{grey4}{HTML}{7F7F7F} 
+\definecolor{grey5}{HTML}{9C9C9C} 
+\definecolor{grey6}{HTML}{CCCCCC} 
+\definecolor{grey7}{HTML}{E0E0E0} 
+\definecolor{grey8}{HTML}{EFEFEF} 
+\definecolor{grey9}{HTML}{F4F4F4}
+
+
+\definecolor{yellow1}{HTML}{ffa92d}
+\definecolor{yellow2}{HTML}{ffdcaa}
+
+
 
 % Fonts  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Language and font encodings
+\setlength{\marginparwidth}{2cm}
+\usepackage[color = yellow2, textwidth=4cm, colorinlistoftodos, size = scriptsize, linecolor=yellow2, bordercolor=yellow2]{todonotes}
+\usepackage{graphicx}
+
+
+\usepackage{hyperref}
+\hypersetup{ 
+	colorlinks = true,
+	citecolor  = red1,
+	urlcolor   = red1,
+	menucolor  = black,
+	linkcolor  = red1} 
+
 \usepackage[english]{babel}
 \usepackage[utf8x]{inputenc}
 \usepackage{cochineal}
 \usepackage[OT1,LGR,T2A,T1]{fontenc}
 \usepackage[cochineal,varg]{newtxmath}
-
-
-
+% \usepackage[numbers, square, comma]{natbib}
 %\usepackage{roboto}  %% Option 'sfdefault' only if the base font of the document is to be sans serif
 
-\usepackage[defaultsans,oldstyle]{opensans} %% Alternatively
+%\usepackage[defaultsans,oldstyle]{opensans} %% Alternatively
 %% use the option 'defaultsans' instead of 'default' to replace the
 %% sans serif font only.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-% bibliography
-\bibliography{cite_new}
-\bibliographystyle{ksfh_nat}
-
-
-
-
 \begin{document}
-
+\listoftodos
 \begin{frontmatter}
 %
 % paper title
-% Titles are generally capitalized except for words such as a, an, and, as,
+% Titles are generally capitalized excepts for words such as a, an, and, as,
 % at, but, by, for, in, nor, of, on, or, the, to and up, which are usually
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
@@ -85,6 +113,7 @@ Machine Learning \sep Brood Rearing \sep Climate Change
 
 
 % chapters
+
 \include{sections/introduction}
 \include{sections/methods}
 \include{sections/results}
@@ -97,7 +126,7 @@ Machine Learning \sep Brood Rearing \sep Climate Change
 
 %
 \bibliography{mybib}
-\bibliographystyle{ieeetr}
+\bibliographystyle{plainnat}
 %
 
 

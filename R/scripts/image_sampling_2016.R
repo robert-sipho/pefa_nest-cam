@@ -8,7 +8,7 @@
 # 34 sites
 length(unique(all_t$site))
 
-## Verify 50 random images per site
+## Verify 50 random images per site from 2016
 #' 8 images with adults at night
 #' 8 images with adults during the day
 #' 8 images without adults at night
@@ -79,6 +79,7 @@ x <- read.csv("data/2016_verify/verification_images.csv")
 
 
 
+
 x$image <- str_replace(x$Image_name, "")
 x %>% filter(str_detect(Image_name, "IMG_0366 (6).JPG"))
 
@@ -125,13 +126,30 @@ file.remove(paste0(image_source, completed$image))
 
 
 # Check accuracy ----------------------------------------------------------
-
 # Load and clean model results
+library(tidyverse)
 
-model_results <- readtext("/Volumes/NUWCRU_DATA/2016_verification_results.txt")
+ver <- read.csv("data/2016_verify/verification_images.csv")
+
+source <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/images/"
+results <- list.files(source, pattern = "*.txt", full.names = TRUE, recursive = TRUE)
+x <- list()
+for (i in 1:length(results)){
+  x[[i]] <- read.delim(results[i], sep = ",", 
+                       col.names = c("image", "adults", "nestlings", "eggs", "bbands", "sbands"),
+                       colClasses = rep("character", 6))
+}
+df <- bind_rows(x)
+df <- df %>% filter(adults != "unk")
+
+
+
+
+
+#model_results <- readtext::readtext("/Volumes/NUWCRU_DATA/2016_verification_results.txt")
 
 # create line breaks at the word "enter", since this is where the data for each image begins
-t <- str_split(toString(model_results), "Enter ")
+t <- str_split(toString(manual_results), "Enter ")
 t <- tibble(col = unlist(t))
 t <- t[2:nrow(t),]
 
