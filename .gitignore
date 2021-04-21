@@ -72,3 +72,4 @@ vignettes/*.pdf
 *.out
 *.gz
 *.toc
+.Rproj.user
