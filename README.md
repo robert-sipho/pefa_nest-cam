@@ -28,8 +28,9 @@ The goal of the project is to demonstrate deep learning methods through applicat
 
 
 ## Status
+On-going.
 
-CNN has been trained and is achieving 95% accuracy with adults, eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. 
+CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy with eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. 
 
 ### Brood size
 
