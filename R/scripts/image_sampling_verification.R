@@ -2,11 +2,13 @@ library(tidyverse)
 library(exifr)
 
 # a script to 
-#   1. load verified image results (manual classification)
+#   1. load and clean verified image results (manual classification)
 #   2. run the verified images through yolo
 #   3. clean yolo outs
-#   4. join the two datasets and examine errors
-#   4. calculate accuracy across settings (night, day, etc...)
+#   4. compare yolo vs. manual classification, and output to a df that summarizes discrepancies
+#   5. dump images with discrepancies into appropriate folders (adult mistakes to adult folder)
+#   6. re-classify mistaken images to verify whether it was yolo or human error
+#   7. Use these results to make a summary about yolo error vs. human error
 
 
 
@@ -107,15 +109,16 @@ ad$sband_pred <- Reduce(`+`, lapply(ad[-1],
                                function(x) lengths(str_extract_all(x, "sband"))))
 
 
-dat <- ad %>% select(image, adult_pred:sband_pred) %>% filter(image != ".DS_Store")
-
-dat <- dat %>%
-  mutate(image = str_replace(image, "2016/", ""))
-combined <- dat %>% 
+dat <- ad %>% 
+  select(image, adult_pred:sband_pred) %>% 
+  filter(image != ".DS_Store") %>%
+  mutate(image = str_replace(image, "2016/", "")) %>%
   right_join(df, by = "image") %>%
   select(image:sbands)
 
-diff <- combined %>%
+
+diff <- dat %>%
+  # calculate differences between model predictions and manual classification
   mutate(adult_diff = as.numeric(adult_pred) - as.numeric(adults),
          nestling_diff = as.numeric(nestling_pred) - as.numeric(nestlings),
          eggs_diff = as.numeric(eggs_pred) - as.numeric(eggs),
@@ -178,6 +181,139 @@ dest <- '/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_
 dir.create(dest)
 file.copy(egg_diff$image_path, dest)
 file.rename(paste0(dest, egg_diff$image), paste0(dest,egg_diff$new_image_name))
+
+
+
+
+
+# Load Verification Results -----------------------------------------------
+
+
+#   * adults --------------------------------------------------------------
+
+source <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/verification_results/adults"
+adults <- list.files(source, pattern = "*.txt", full.names = TRUE, recursive = TRUE)
+
+adult_df <- read.delim(adults, sep = ",", col.names = c("image", "adults", "nestlings", "eggs", "bbands", "sbands")) %>%
+  mutate(source = paste0(source, image)) %>%
+  mutate(image = str_sub(image, str_locate(adult_df$image, "adults")[,2]+2)) %>%
+  filter(image != ".DS_Store") %>%
+  select(image, "verified" = "adults")
+
+adult_results <- dat %>%
+  select(image, "cnn_pred"="adult_pred", "human_pred"="adults") %>%
+  right_join(adult_df, by = "image") %>%
+  mutate(cnn_diff  = cnn_pred - verified,
+         human_diff= as.numeric(human_pred) - verified)
+
+
+
+#  *** Stats --------------------------------------------------------------
+
+
+
+  # true positives when we initially thought they were mistakes
+TP1 <- adult_results %>%
+  filter(cnn_diff == 0) %>%
+  summarize(sum = sum(verified))
+
+  # true positives from original
+TP2 <- diff %>%
+  filter(adult_diff == 0) %>%
+  summarize(sum = sum(adult_pred))
+
+TP <- as.numeric(TP1 + TP2)
+
+FP <- as.numeric(adult_results %>%
+  filter(cnn_diff > 0) %>%
+  summarize(fp = sum(cnn_diff)))
+
+TN1 <- adult_results %>%
+  filter(cnn_diff == 0) %>%
+  filter(verified == 0) %>%
+  tally()
+TN2 <- diff %>%
+  filter(adult_diff == 0) %>%
+  filter(adults == 0) %>%
+  tally()
+TN <- as.numeric(TN1 + TN2)
+
+FN <- as.numeric(adult_results %>%
+  filter(cnn_diff < 0) %>%
+  summarize(fn = sum(abs(cnn_diff))))
+  
+adult_stats <- data.frame(TPR = TP / (TP + FN),
+                          FPR = FP / (FP + TN),
+                          F1 = (2*TP) / (2*TP) + FP + FN,
+                          accuracy = (TP + TN) / (TP + TN + FP + FN))
+
+
+# * bbands ----------------------------------------------------------------
+
+
+source <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/verification_results/bband"
+bbands <- list.files(source, pattern = "*.txt", full.names = TRUE, recursive = TRUE)
+
+bband_df <- read.delim(bbands, sep = ",", col.names = c("image", "adults", "nestlings", "eggs", "bbands", "sbands")) %>%
+  mutate(source = paste0(source, image)) %>%
+  mutate(image = str_sub(image, str_locate(image, "bbands")[,2]+1)) %>%
+  filter(image != ".DS_Store") %>%
+  select(image, "verified" = "bbands")
+names(dat)
+
+
+bband_results <- tibble(dat) %>%
+  select(image, "cnn_pred"="bband_pred", "human_pred"="bbands") %>%
+  right_join(bband_df, by = "image") %>%
+  mutate(cnn_diff  = cnn_pred - verified,
+         human_diff= as.numeric(human_pred) - verified)
+
+
+
+#  *** Stats --------------------------------------------------------------
+
+
+
+# true positives when we initially thought they were mistakes
+TP1 <- bband_results %>%
+  filter(cnn_diff == 0) %>%
+  summarize(sum = sum(verified))
+
+# true positives from original
+TP2 <- tibble(diff) %>%
+  filter(adult_diff == 0) %>%
+  summarize(sum = sum(bband_pred))
+
+TP <- as.numeric(TP1 + TP2)
+
+FP <- as.numeric(bband_results %>%
+                   filter(cnn_diff > 0) %>%
+                   summarize(fp = sum(cnn_diff)))
+
+TN1 <- bband_results %>%
+  filter(cnn_diff == 0) %>%
+  filter(verified == 0) %>%
+  tally()
+TN2 <- diff %>%
+  filter(bband_diff == 0) %>%
+  filter(bbands == 0) %>%
+  tally()
+
+TN <- as.numeric(TN1 + TN2)
+
+FN <- as.numeric(bband_results %>%
+                   filter(cnn_diff < 0) %>%
+                   summarize(fn = sum(abs(cnn_diff))))
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)
+bband_stats <- data.frame(recall = recall,
+                          precision = precision,
+                          FPR = FP / (FP + TN),
+                          F1 = (2*(precision*recall)) / precision+recall,
+                          accuracy = (TP + TN) / (TP + TN + FP + FN))
+
+
+
 
 # wrangle exif into:
 
