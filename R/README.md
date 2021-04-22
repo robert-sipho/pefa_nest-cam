@@ -45,5 +45,8 @@ given the nature of these irregularities, it's now my opinion that we need to be
 I'm converting raw detections to daily proportions. We have multiple images for each day at a given nest, and each image either has an adult in it or not. 
 I'm reducing this to a single value per day that indicates how many of the 1,440 minutes in each day contained an adult peregrine falcon in it. Excluding 2013 and 2014 to develop the model. Want to make sure the model is solid before I throw too much missing data into it
 
+### Image sampling/model evaluation
+Use the ```image_sampling_2016.R``` to read exif data, and sample evenly across nests and conditions (images where adults, bands, nestlings, and eggs are present and not present). This script copies images over to a new location to be manually classified using the ```pefa_gui.py```. The CNN is then run over the manually classified images, and model predictions are compared to the manual classifications. All discrepancies are manually checked to determine errors generated from both manual classification and CNN object detection. Neither process is perfect.
 
 ### 03_merge_and_model
+Merge model predictions into proportional nest attendance per day. Build model's to evaluate lag effects of inclement weather.
