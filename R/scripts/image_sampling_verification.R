@@ -137,6 +137,16 @@ bband_diff <- diff %>%
   mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
          new_image_name = paste0(bband_pred,"_","bbands",image))
 
+sband_diff <- diff %>% 
+  filter(sbands_diff != 0) %>%
+  mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
+         new_image_name = paste0(sband_pred,"_","sbands",image))
+
+egg_diff <- diff %>% 
+  filter(eggs_diff != 0) %>%
+  mutate(image_path = paste0("/Volumes/NUWCRU_DATA/2016/",image),
+         new_image_name = paste0(eggs_pred,"_","eggs",image))
+
 # accuracy results
 abs(length(which(diff$adult_diff != 0)) / nrow(diff) * 100 - 100)
 abs(length(which(diff$eggs_diff != 0)) / nrow(diff) * 100 - 100)
@@ -158,6 +168,16 @@ dest <- '/Volumes/NUWCRU_DATA/mistakes/bband/'
 dir.create(dest)
 file.copy(bband_diff$image_path, dest)
 file.rename(paste0(dest, bband_diff$image), paste0(dest,bband_diff$new_image_name))
+
+dest <- '/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/verification_results/sband/'
+dir.create(dest)
+file.copy(sband_diff$image_path, dest)
+file.rename(paste0(dest, sband_diff$image), paste0(dest,sband_diff$new_image_name))
+
+dest <- '/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/verification_results/eggs/'
+dir.create(dest)
+file.copy(egg_diff$image_path, dest)
+file.rename(paste0(dest, egg_diff$image), paste0(dest,egg_diff$new_image_name))
 
 # wrangle exif into:
 
