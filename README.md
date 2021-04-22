@@ -30,7 +30,7 @@ The goal of the project is to demonstrate deep learning methods through applicat
 ## Status
 On-going.
 
-CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy with eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. 
+CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy with eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. Image augmentation could boost accuracy, although adult detection may not get much higher. Nestling inaccuracies likely stem from human error during annotation. When shown random images containing nestlings, it's often very difficult to differentiate individuals in the image due to overexposure, and the CNN is therefore being trained on an imperfect dataset. I suspect the accuracy of the CNN is similar to the accuracy of a human randomly classifying nest images, I'm working on confirming that.
 
 ### Brood size
 
