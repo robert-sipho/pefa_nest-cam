@@ -2,6 +2,8 @@
 
 Work done to leverage an existing CNN and transfer learning to automatically classify objects relevant to the Peregrine Falcon monitoring program. Here, we focus on detecting four main objects: **Peregrine adults**, **nestlings**, **eggs**, and **leg bands** (aluminum and Acraft separately). Depending on the number of active nests, the project captures roughly 2.5 million images in a given year. Manually classifying images is unreasonable, and priority is currently given to subsetting and classifying certain events of interest (provisioning events for example). 
 
+Through automatic classification, we can feasibly process all images captured each year and substantially increase the amount of available data
+
 
 
 ### General Workflow
@@ -10,8 +12,6 @@ Work done to leverage an existing CNN and transfer learning to automatically cla
 </p>
 
 
-
-### Remaining work
  
 
 ### Project Outline
