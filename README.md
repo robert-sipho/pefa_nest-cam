@@ -6,7 +6,7 @@ Work done to leverage an existing CNN and transfer learning to automatically cla
 
 ### General Workflow
 <p float="center">
-  <img src="documents/flow.drawio.png" width="600" />
+  <img src="documents/flow.drawio.png" width="800" />
 </p>
 
 
