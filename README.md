@@ -1,13 +1,14 @@
 ## Automating image processing using CNNs, and exploring the tradeoffs of automation
 
+Work done to leverage an existing CNN and transfer learning to automatically classify objects relevant to the Peregrine Falcon monitoring program. Here, we focus on detecting four main objects: **Peregrine adults**, **nestlings**, **eggs**, and **leg bands** (aluminum and Acraft separately). Depending on the number of active nests, the project captures roughly 2.5 million images in a given year. Manually classifying images is unreasonable, and priority is currently given to subsetting and classifying certain events of interest (provisioning events for example). 
+
+
+
+### General Workflow
 <p float="center">
   <img src="documents/flow.drawio.png" width="600" />
 </p>
 
-This folder contains work done to automatically detect objects in images using an object detection CNN. Here, we focus on detecting four main objects: **adults**, **nestlings**, **eggs**, and **leg bands**. The motivation of this work is to streamline the process of image transcription for projects implementing some form of nest monitoring using cameras. 
-
-<br>
-<br>
 
 
 ### Remaining work
