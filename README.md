@@ -1,7 +1,7 @@
 ## Automating image processing using CNNs, and exploring the tradeoffs of automation
 
 <p float="center">
-  <img src="documents/flow.drawio.png" width="600" />
+  <img src="documents/flow.drawio.png" width="350" />
 </p>
 
 This folder contains work done to automatically detect objects in images using an object detection CNN. Here, we focus on detecting four main objects: **adults**, **nestlings**, **eggs**, and **leg bands**. The motivation of this work is to streamline the process of image transcription for projects implementing some form of nest monitoring using cameras. 
