@@ -54,7 +54,7 @@ The true brood size is drawn in black, with model predictions in red. The model 
 Retrain using object tracking. This would smooth the prediction across images by integrating something like deepsort via tensorflow. See [this repo](https://github.com/GeekAlexis/FastMOT), or [this one](https://github.com/LeonLok/Deep-SORT-YOLOv4) for examples. One issue with this method stems from the fact that we're not actually using video, or high frame rates. There are large gaps in the sequence of images, which introduces potential bias in tracking individuals. 
 
  - **Option 2** - 
-Build a model that corrects predictions according to data obtained during nest visits. For example, we fill in the missing covariate information using a bayesian sub-model that is guided with real, confirmed data obtained during physical nest visits.
+Build a model that corrects predictions according to data obtained during nest visits. Use an observation confirmation model from [Chambert et. al 2015](https://esajournals.onlinelibrary.wiley.com/doi/pdfdirect/10.1890/14-1507.1)
 
  -  **Option 3** - 
 Binarize nestlings. Many nest-fate models do this anyways, and incorporate broad categories such as brood initiation / brood failure / brood success.
@@ -62,7 +62,7 @@ Binarize nestlings. Many nest-fate models do this anyways, and incorporate broad
 -  **Option 4** - 
 Implement a multievent model. Detecting nestlings on camera fits well with a mark-recap framework, and if we can successfully inject measurement error into the recaps, we could potentially automate the whole process (idea inspired by [this paper](https://link.springer.com/article/10.1007/s10336-011-0723-0))
 
-First choice will be option 4 for now.
+
 
 <br>
 <br>
