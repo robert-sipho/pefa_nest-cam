@@ -1,0 +1,19 @@
+ 
+    model {
+# Priors
+  psi ~ dunif(0, 1)
+  p10 ~ dunif(0, 1)
+  p11 ~ dunif(0, 1)
+  lam ~ dunif(0, 1000)
+  ome ~ dunif(0, 1000) 
+
+# Likelihood:process and observation models
+for (i in 1:nsites) {
+  z[i] ~ dbern(psi)
+  p[i] <- z[i] * p11 + (1-z[i]) * p10
+  for(j in 1:nsurveys) {
+    # y[i,j] ~ dbern(p[i])
+    yARU[i,j] ~ dpois(lam * z[i] + ome)
+  }
+}
+}
