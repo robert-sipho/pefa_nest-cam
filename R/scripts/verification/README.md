@@ -1,8 +1,3 @@
-<p float="center">
-  <img src="svg/workflow.drawio.svg" width="750" />
-</p>
-
-
 ### Thought Process
 
 In training the CNN, we can obtain the weights optimized at various stages. The concept here is that we can potentially use the collection of weights to generate numerous predictions per image. 
@@ -74,3 +69,4 @@ Q_i &= N_i - K_i
 $$ --> 
 
 <div align="center"><img style="background: white;" src="../../../svg/3tbdMPvhcb.svg"></div>
+
