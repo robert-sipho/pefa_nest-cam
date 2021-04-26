@@ -48,4 +48,29 @@ $$ -->
 <div align="center"><img style="background: white;" src="../../../svg/tlCpTAX0wM.svg"></div> 
 
 
-At unoccupied sites, any detection is a false positive (p_10)
+At unoccupied sites (*z_i* = 0), any detection is a false positive (p_10), whereas at occupied sites (*z_i* = 1), a detection can either be true or false. Probabilitys p_11 (true detection) and p_10 (false detection) can be written as:
+
+<!-- $$
+#9C9C9C
+\begin{aligned}
+p_{11} &= Pr(y_{ij}=1 | z_i = 1) \\
+p_{10} &= Pr(y_{ij}=1|z_i=0)
+\end{aligned}
+$$ --> 
+
+<div align="center"><img style="background: white;" src="../../../svg/tNJeGjEeZJ.svg"></div>
+
+Next, we specify the total number of true detections for image *i* as *K_i* and false detections as *Q_i*. Combined,N_i = total detections = K_i + Q_i, is modelled with two distinct Poisson processes with intensity rate parameters lambda and w, both of which are conditional on both z_i and y_ij. If at least one detection occurred in image i across all predictions, the N_i = K_i + Q_i is constrained as strictly positive. Because of this constraint, we use a zero truncated poisson distribution to model N_i. 
+
+<!-- $$ 
+\begin{aligned}
+\textrm{When } &w_i=0 \textrm{, we have: } \\
+N_i=0, K_i = 0 &\textrm{   and   } Q_i = N_i - K_i = 0 \\
+\textrm{and, when } &w_i = 1 \textrm{ we have:} \\
+N_i &\sim \textrm{Poisson}(\lambda * z_i + w) \\
+K_i &\sim \textrm{Poisson}(\lambda*z_i) \\
+Q_i &= N_i - K_i
+\end{aligned}
+$$ --> 
+
+<div align="center"><img style="background: white;" src="../../../svg/3tbdMPvhcb.svg"></div>
