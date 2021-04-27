@@ -41,7 +41,7 @@ The true brood size is drawn in black, with model predictions in red. The model 
 Retrain using object tracking. This would smooth the prediction across images by integrating something like deepsort via tensorflow. See [this repo](https://github.com/GeekAlexis/FastMOT), or [this one](https://github.com/LeonLok/Deep-SORT-YOLOv4) for examples. One issue with this method stems from the fact that we're not actually using video, or high frame rates. There are large gaps in the sequence of images, which introduces potential bias in tracking individuals. 
 
  - **Option 2** - 
-Build a model that corrects predictions according to data obtained during nest visits. Use an observation confirmation model from [Chambert et. al 2015](https://esajournals.onlinelibrary.wiley.com/doi/pdfdirect/10.1890/14-1507.1)
+Build a model that corrects predictions according to data obtained during nest visits. Use an observation confirmation model from [Chambert et. al 2017](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12910)
 
  -  **Option 3** - 
 Binarize nestlings. Many nest-fate models do this anyways, and incorporate broad categories such as brood initiation / brood failure / brood success.
