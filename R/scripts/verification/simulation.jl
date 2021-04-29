@@ -26,8 +26,9 @@ valid <- valid_data(data[["N"]],
 df = @rget data
 valid = @rget data
 
-valid[:y]
-valid[:N]
+df[:y]
+df[:N]
+
 @model model(y) = begin
 # Priors
     ψ   ~ Uniform(0,1)	# psi = Pr(Occupancy)
@@ -74,38 +75,76 @@ end
 
 
 
+#= 
+Applied hierarchical modeling version
+=#
 
+@model AHM( yCNN) = begin
+    I = size(y, 1)
+    J = size(y, 2)
 
+# Priors
+    ψ ~ Uniform(0, 1)
+    p₁₀ ~ Uniform(0, 1)
+    p₁₁ ~ Uniform(0, 1)
+    λ ~ Uniform(0, 1000)
+    ω ~ Uniform(0, 1000)
 
+    z = zeros(I)
+    p = zeros(I)
 
-
-@model BayesHmm(y, K) = begin
-    # Get observation length.
-    N = length(y)
-
-    # State sequence.
-    s = tzeros(Int, N)
-
-    # Emission matrix.
-    m = Vector(undef, K)
-
-    # Transition matrix.
-    T = Vector{Vector}(undef, K)
-
-    # Assign distributions to each element
-    # of the transition matrix and the
-    # emission matrix.
-    for i = 1:K
-        T[i] ~ Dirichlet(ones(K)/K)
-        m[i] ~ Normal(i, 0.5)
+# Likelihood
+    for i in 1:I
+         p[i] = z[i] .* p₁₁ .+ (1 .- z[i]) .* p₁₀    # false-positive detection model
+        z[i] ~ Bernoulli(ψ)                   # Occupancy status 
+        for j in 1:J
+            y[i,j] ~ Bernoulli( z[i] .* p₁₁ .+ (1 .- z[i]) .* p₁₀ )          # Binary occupancy 
+            yCNN[i,j] ~ Poisson(λ * z[i] + ω) # CNN total count
+        end
     end
+end
 
-    # Observe each point of the input.
-    s[1] ~ Categorical(K)
-    y[1] ~ Normal(m[s[1]], 0.1)
 
-    for i = 2:N
-        s[i] ~ Categorical(vec(T[s[i-1]]))
-        y[i] ~ Normal(m[s[i]], 0.1)
-    end
-end;
+
+g = Gibbs(HMC(0.001, 7, :λ, :ω), PG(10, :p₁₀, :p₁₁, :p, :z))
+c = sample(AHM(yCNN), g, 100);
+chains = sample(AHM(yCNN), PG(10), 250)
+
+
+mean(c[:ω])
+
+
+
+#= AHM Simulation =#
+R"""
+# Simulation settings
+set.seed(2019, kind = "Mersenne") 
+nsites <- 100
+nsurveys <- 5
+psi <- 0.8
+p11 <- 0.8
+p10 <- 0.05
+lam <- 3
+ome <- 0.50
+# Simulate true occupancy states
+z <- rbinom(nsites, 1, psi)
+# Define detection probability
+p <- z * p11 + (1-z) * p10
+# Number of sites
+# Number of replicates/occasions
+# Occupancy
+# Detection probability at an occupied site # False detection probability
+# Rate of true positives from ARU
+# Rate of false positives from ARU
+# Simulate occupancy data and ARU count frequencies
+yARU <- y <- K <- Q <- matrix(NA, nsites, nsurveys)
+for(i in 1:nsites){
+y[i,] <- rbinom(nsurveys, 1, p[i]) # Detection/nondetection data
+K[i,] <- rpois(nsurveys, lam*z[i]) # True positive detection frequency 
+Q[i,] <- rpois(nsurveys, ome) # False-positive detection frequency 
+yARU[i,] <- K[i,] + Q[i,] # Number of ARU detections
+}
+"""
+
+y = @rget y
+yCNN = @rget yARU
