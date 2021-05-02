@@ -14,6 +14,12 @@ for (i in 1:length(results)){
 }
 df <- bind_rows(list)
 
+I = 20
+psi = 0.6
+z = rep(0, I)
+occupied = sample(I, psi*I)
+z[occupied] = 1
+
 
 # run function ------------------------------------------------------------
 
