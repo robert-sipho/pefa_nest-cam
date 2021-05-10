@@ -5,8 +5,13 @@ source("scripts/utils.R")
 ## *manual class ----------------------------------------------------------
 
 source <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/images"
-
+dest <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/images/pooled_images"
 results <- list.files(source, pattern = "*.txt", full.names = TRUE, recursive = FALSE)
+images_full <- list.files(source, pattern = "*.JPG", full.names = TRUE, recursive = TRUE) 
+images <- list.files(source, pattern = "*.JPG", full.names = FALSE, recursive = TRUE) %>%
+  str_sub(., str_locate(.,"/")[,2]+1)
+
+file.copy(images_full[images %in% df$image],dest) 
 
 list <- list()
 for (i in 1:length(results)){
@@ -14,28 +19,16 @@ for (i in 1:length(results)){
 }
 df <- bind_rows(list)
 
-I = 20
-psi = 0.6
-z = rep(0, I)
-occupied = sample(I, psi*I)
-z[occupied] = 1
-
 
 # run function ------------------------------------------------------------
+files <- list.files("/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/R/data/2016_verify",
+           pattern = "*.txt", full.names = TRUE)
 
-
-source <- "/Volumes/NUWCRU_DATA/2016_verification_1k.txt"
-weights_1k <- convert_yolo_pefa(source = source, weights = "_1k")
-source <- "/Volumes/NUWCRU_DATA/2016_verification_4k.txt"
-weights_4k <- convert_yolo_pefa(source = source, weights = "_4k")
-source <- "/Volumes/NUWCRU_DATA/2016_verification_5k.txt"
-weights_5k <- convert_yolo_pefa(source = source, weights = "_5k")
-source <- "/Volumes/NUWCRU_DATA/2016_verification_8k.txt"
-weights_8k <- convert_yolo_pefa(source = source, weights = "_8k")
-source <- "/Volumes/NUWCRU_DATA/2016_verification_10000.txt"
-weights_10k <- convert_yolo_pefa(source = source, weights = "_10k")
-source <- "/Volumes/NUWCRU_DATA/2016_verification_final.txt"
-weights_final <- convert_yolo_pefa(source = source, weights = "_final")
+weights_1k <- convert_yolo_pefa(source = files[2], weights = "_k1")
+weights_4k <- convert_yolo_pefa(source = files[3], weights = "_k4")
+weights_5k <- convert_yolo_pefa(source = files[4], weights = "_k5")
+weights_8k <- convert_yolo_pefa(source = files[5], weights = "_k8")
+weights_10k <- convert_yolo_pefa(source = files[1], weights = "_k10")
 
 dat <- df %>% 
   left_join(weights_1k, by = "image") %>%
@@ -43,17 +36,59 @@ dat <- df %>%
   left_join(weights_5k, by = "image") %>%
   left_join(weights_8k, by = "image") %>%
   left_join(weights_10k, by = "image") %>%
-  left_join(weights_final, by = "image") %>%
-  pivot_longer(cols = adult_human:sband_final) %>%
+  pivot_longer(cols = adult_human:sband_k10) %>%
   mutate(weights = str_sub(name, str_locate(name,"_")[,2]+1),
          class = str_sub(name, 0,str_locate(name,"_")[,2]-1)) %>%
   select(-name)
 
-dat %>% filter(weights == "1k")
+# nestling detection - binary outcome
+nestling_dh <- dat %>%
+  filter(class == "nestling") %>%
+  select(-class) %>%
+  pivot_wider(names_from = weights, values_from = value) %>%
+    # binarize
+  mutate_at(c("human","k1","k4","k5","k8","k10"), function(x) ifelse(x > 0,1,0))
 
-dat
+# nestling count - count outcome
+nestling_ch <- dat %>%
+  filter(class == "nestling") %>%
+  select(-class) %>%
+  pivot_wider(names_from = weights, values_from = value) #%>%
+    # binarize
+  #mutate_at(c("human","k1","k4","k5","k8","k10"), function(x) ifelse(x > 0,1,0))
+
+# determine images where human counts are different than our best model. Use this to hopefuly correct human count to being 100% perfect
+nestling <- nestling_ch %>% 
+  filter(human != k10) %>%
+  pull(image)
+
+nestling_dh %>% 
+  filter(human != k10)
 
 # Model -------------------------------------------------------------------
+
+## Obs Conf ----------------------------------------------------------------
+
+
+source <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/images"
+dest <- "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/cam/pefa_nest-cam/python/verification_gui/verification_results/nestling_dh"
+files_full <- list.files(source, pattern = "*.JPG", recursive = TRUE, full.names = TRUE)
+files <- list.files(source, pattern = "*.JPG", recursive = TRUE) %>%
+  str_sub(., str_locate(.,"/")[,2]+1)
+
+
+
+file.copy(files_full[files %in% (nestling_dh %>% filter(human != k10) %>% pull(image))], dest)
+new_names <- paste0("h_",
+                    nestling_dh %>% filter(human != k10) %>% pull(human),
+                    "-CNN_",
+                    nestling_dh %>% filter(human != k10) %>% pull(k10), "_",
+                    nestling_dh %>% filter(human != k10) %>% mutate(row = row_number()) %>% pull(row),
+                    ".JPG")
+file.rename(
+  list.files(dest, pattern = "*.JPG", full.names = TRUE),
+  paste0(dest,"/",new_names)
+)
 
 expit <- function(x) 1/(1 + exp(-x))
 

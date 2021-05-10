@@ -12,13 +12,29 @@ library(zoo)
 
 
 
-kfsurv <- read_csv("data/00_kfsurv.csv") %>% filter( year == 2017)
+kfsurv <- read_csv("data/00_kfsurv.csv") #%>% filter( year == 2017)
 datasheet <- read_csv("data/hatch_14.csv") %>% rename("yday_hatch" = "yday")
 model <- arrow::read_parquet("data/02_clean_parquets/02_alldata_2017.parquet")
 
-brood <- read_csv("data/03_daily_surival.csv") %>% select(-X1)
+brood <- read_csv("data/03_daily_survival.csv") %>% select(-X1)
 
-brood <- brood %>% group_by(site, year, yday) %>% summarize(b_size = sum(alive))
+x <- brood %>%
+  filter(!duplicated(ind)) %>%
+  group_by(year, site) %>%
+  tally() 
+
+
+write.csv(x, "data/brood_size_summary.csv")
+brood %>%
+  f
+  tally()
+  
+
+
+brood <- brood %>% 
+  mutate(yday = yday(date)) %>%
+  group_by(site, year, yday) %>% 
+  summarize(b_size = sum(alive))
 # clean Model data --------------------------------------------------------
 
 unique(brood$site)

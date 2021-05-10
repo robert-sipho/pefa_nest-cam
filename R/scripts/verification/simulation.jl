@@ -148,3 +148,13 @@ yARU[i,] <- K[i,] + Q[i,] # Number of ARU detections
 
 y = @rget y
 yCNN = @rget yARU
+
+
+
+
+StatsBase.transform()
+
+
+Erik Hedlin
+1 (780) 919-2715
+hedlin@ualberta.ca
