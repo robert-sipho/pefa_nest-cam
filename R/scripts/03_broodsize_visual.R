@@ -23,14 +23,6 @@ x <- brood %>%
   group_by(year, site) %>%
   tally() 
 
-
-write.csv(x, "data/brood_size_summary.csv")
-brood %>%
-  f
-  tally()
-  
-
-
 brood <- brood %>% 
   mutate(yday = yday(date)) %>%
   group_by(site, year, yday) %>% 
@@ -40,39 +32,38 @@ brood <- brood %>%
 unique(brood$site)
 brood %<>% filter(year == 2017)
 
-model_summary <- model %>% 
-  mutate(nestling = as.factor(nestling)) %>%
+# count
+nestling_count <- model %>% 
   mutate(day = date(date)) %>%
   group_by(site, day) %>% 
-  count(nestling) %>% 
-  mutate(yday = yday(day)) %>%
-  filter(site == 100) %>%
-  group_by(day) %>%
-  mutate(prop = n / sum(n))
+  summarize(max_nestling = max(nestling)) %>% 
+  mutate(yday = yday(day),
+         max_nestling_prop = max_nestling/4) 
 
 
+# binary
+model_summary <- model %>%
+  mutate(nestling = ifelse(nestling > 0, 1, 0)) %>%
+  mutate(day = date(date)) %>%
+  group_by(site, day) %>%
+  summarize(prop = sum(nestling) / n()) %>%
+  mutate(yday = yday(day))
+
+as.character(unique(brood$site)[1:10])
+sites <- as.character(unique(brood$site)[1:10])
 
 ggplot() +
-  geom_line(data = filter(brood, site == 100), aes(x = yday, y = b_size/4), colour = grey4) +
-  geom_point(data = filter(brood, site == 100), aes(x = yday, y = b_size/4), colour = "white", size = 3) +
-  geom_text(data = filter(brood, site == 100), aes(x = yday, y = b_size/4, label = b_size), size = 2.5) +
-  geom_line(data = filter(model_summary, nestling == 1), aes(x = yday, y = prop), colour = red5) +
-  geom_point(data = filter(model_summary, nestling == 1), aes(x = yday, y = prop, alpha = prop),colour = "white", size = 3) +
-  geom_point(data = filter(model_summary, nestling == 1), aes(x = yday, y = prop, alpha = prop, size = prop), shape = "1", fill = "white", colour = red2) +
-  geom_line(data = filter(model_summary, nestling == 2), aes(x = yday, y = prop), colour = red5) +
-  geom_point(data = filter(model_summary, nestling == 2), aes(x = yday, y = prop, alpha = prop),colour = "white", size = 3) +
-  geom_point(data = filter(model_summary, nestling == 2), aes(x = yday, y = prop, alpha = prop, size = prop), shape = "2", fill = "white", colour = red2) +
-  geom_line(data = filter(model_summary, nestling == 3), aes(x = yday, y = prop), colour = red5) +
-  geom_point(data = filter(model_summary, nestling == 3), aes(x = yday, y = prop, alpha = prop),  colour = "white", size = 2) +
-  geom_point(data = filter(model_summary, nestling == 3), aes(x = yday, y = prop, alpha = prop, size = prop), shape = "3", fill = "white", colour = red2) +
-  geom_line(data = filter(model_summary, nestling == 4), aes(x = yday, y = prop), colour = red5) +
-  geom_point(data = filter(model_summary, nestling == 4), aes(x = yday, y = prop, alpha = prop), colour = "white", size = 2) +
-  geom_point(data = filter(model_summary, nestling == 4), aes(x = yday, y = prop, alpha = prop, size = prop), shape = "4", fill = "white", colour = red2) +
+  geom_line(data = filter(brood, site %in% sites & year == 2017), aes(x = yday, y = b_size), colour = grey4) +
+  geom_point(data = filter(brood,site %in% sites & year == 2017), aes(x = yday, y = b_size), colour = "white", size = 3) +
+  geom_text(data = filter(brood, site %in% sites & year == 2017), aes(x = yday, y = b_size, label = b_size), size = 2.5) +
+  #geom_line(data = filter(model_summary, site %in% sites), aes(x = yday, y = prop), colour = red2) +
+  geom_line(data = filter(nestling_count, site %in% sites), aes(x = yday, y = max_nestling), colour = red3) +
   scale_alpha_continuous(range = c(0,1)) +
-  scale_y_continuous(limits = c(0,1)) +
+  #scale_y_continuous(limits = c(0,1.5)) +
   scale_x_continuous(limits = c(190,225)) +
+  facet_grid(site~.)+
   ylab("brood size confidence") + xlab("julian day") +
-  theme_nuwcru() + theme(legend.position = "none")
+  theme_nuwcru() + theme(legend.position = "none") + facet_nuwcru()
                
 
 
