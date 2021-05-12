@@ -16,7 +16,11 @@ Here, we build a CNN capable of accurately detecting four main classes: **Peregr
 <br>
 <br> 
 
+### Concept DAG
 
+<p float="center">
+  <img src="documents/dag.drawio.svg" width="400" />
+</p>
 
 
 
