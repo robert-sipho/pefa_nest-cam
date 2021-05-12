@@ -29,6 +29,6 @@ CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy wit
   <img src="documents/nestling.JPG" width="400" />
 </p>
 
-Determining the correct number of nestlings in a picture is difficult for humans as well, which means that many of the images used in the training dataset likely include error. Errors in manual generation of image annotation result in a CNN that also makes errors. Eventually, it would be nice to build methods that can account for imperfect estimates of brood size, but for now, we'll use brood size information as determined by physical nest visits.
+Determining the correct number of nestlings in a picture is difficult for humans as well, which means that many of the images used in the training dataset likely include error. Errors made in manual annotation are propogated in the CNN. Eventually, it would be nice to build methods that can account for imperfect estimates of brood size, but for now, we'll use brood size information as determined by physical nest visits.
 
 
