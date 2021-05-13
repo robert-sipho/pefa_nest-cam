@@ -17,6 +17,14 @@ Here, we build a CNN capable of accurately detecting four main classes: **Peregr
 <br> 
 
 ### Concept DAG
+To demonstrate how the CNN can be used with this dataset, we look at nest attendance among breeding pairs of PEFA. After nestlings hatch, they are unable to independantly thermoregulate and rely on warmth/shelter from their parents. Time spent brooding means there is less time available to the parents for hunting and self maintenance. This is likely a manageable tradeoff at the early stages of brood rearing as nestlings have relatively low energetic requirements.
+
+As nestlings age and develop, their energy requirements increase and parents have to shift their time allocation to keep up with the increasing energetic demands. This coincides with nestling's increasing ability to thermoregulate (they reach full independance by 21 days of age), which reduces the risk of exposure. This is all great under ideal circumstances, however the north is experiencing increased frequency in inclement weather events (ie. heavy rainfall). When the nestling's down gets wet, they become much more susceptible to lower temperatures, which can lead to mortality. The risk of brood reduction due to rainfall is buffered by parental sheltering, but time allocated to sheltering is time taken away from food acquisition. In these circumstances, we enter some tricky decision making territory for adults. How they decide to allocate their time depends on a few different factors: 
+ * Risk to brood from food limitation. Linked to energetic requirements of the brood (age, brood size). How easily is food acquired.
+ * Risk to brood from weather event.
+ * Adult condition. If times are tough, adult condition reaches a lower limit where self maintenance takes precedence. 
+
+
 
 <p float="center">
   <img src="documents/dag.drawio.svg" width="500" />
