@@ -48,7 +48,9 @@ nestling_count <- model %>%
 
 
 as.character(unique(brood$site)[1:10])
-sites <- as.character(unique(brood$site)[10:30])
+sites <- as.character(unique(brood$site)[10:15])
+
+text <- data.frame(yday = 215, site = "31", y = 4)
 
 brood %>%
   filter(year == 2017) %>%
@@ -60,14 +62,18 @@ ggplot() +
   geom_point(aes(x = yday, y = b_size), colour = "white", size = 3) +
   geom_segment(aes(x = yday, xend = yday, y = b_size, yend = max_nestling), colour = blue4) +
   geom_point(aes(x = yday, y = b_size), colour = "white", size = 3, alpha = 0.5) +
-  geom_point(aes(x = yday, y = max_nestling), shape = 21, fill = NA, colour = blue4, size = 2) +
+  geom_point(aes(x = yday, y = max_nestling), shape = 21, fill = blue4, colour = "white", size = 2) +
   geom_text(aes(x = yday, y = b_size, label = b_size), size = 2.5) +
+  geom_text(data = text, aes(x = 217, y = 5, label = "model predicted brood size"), colour = blue4, size = 3.5) +
+  geom_text(data = text, aes(x = 215, y = 3, label = "true brood size"), colour = grey2, size = 3.5) +
   scale_alpha_continuous(range = c(0,1)) +
   #scale_y_continuous(limits = c(0,1.5)) +
   scale_x_continuous(limits = c(190,225)) +
   facet_grid(site~.)+
-  ylab("brood size confidence") + xlab("julian day") +
-  theme_nuwcru() + theme(legend.position = "none") + facet_nuwcru()
+  ylab("brood size") + xlab("") +
+  theme_nuwcru() + theme(legend.position = "none", axis.text.x = element_blank()) + facet_nuwcru()
+
+
                
 
 
