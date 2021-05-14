@@ -9,13 +9,18 @@ library(cmdstanr)
 set_cmdstan_path()
 
 # Load and prepare data ---------------------------------------------------
+
+
 dat <- do.call(rbind, 
                lapply(c(#"data/02_2013_prop.csv","data/02_2014_prop.csv",
                  "data/02_2015_prop.csv", "data/02_2016_prop.csv","data/02_2017_prop.csv"), read_csv)) %>% 
   select(-X1, -trt) %>% mutate(yday = yday(date))
 
+
+
 chicks <- read_csv("data/03a_chick_weights.csv") %>% select(-X1)
-trt <- read_csv("data/00_trt.csv") %>% rename("site" = "nest")
+trt <- read_csv("data/00_trt.csv") %>% 
+  rename("site" = "nest")
 
 
 # broodsize by n, and by weight
@@ -38,12 +43,40 @@ dat
 x <- dat %>%
   group_by(yday, plot_date, year, treatment) %>%
   summarize(pop_weight = sum(b_weight)) 
+
+View(dat %>%
+  filter(plot_date > as.Date("2015-08-08")))
   
 ggplot() +
   geom_line(data = filter(x, treatment == 0), aes(x = plot_date, y = pop_weight), colour = nuwcru::grey3) +
-  geom_line(data = filter(x, treatment == 1), aes(x = plot_date, y = pop_weight), colour = nuwcru::blue2f) +
+  geom_line(data = filter(x, treatment == 1), aes(x = plot_date, y = pop_weight), colour = nuwcru::red2) +
   facet_wrap(~year, ncol = 1) +
   theme_nuwcru() + facet_nuwcru()
+
+
+# Visual ------------------------------------------------------------------
+
+labels = tibble(
+  state = c(0,1),
+  year = c(2016,2016),
+  text = c("no rain", "rain"),
+  trt = c("control", "control")
+)
+str(dat)
+t <- dat %>% filter(!is.na(precip)) %>%
+  mutate(trt = as.factor(ifelse(treatment == 0, "control", "supplemented"))) 
+t %>% filter(trt == "supplemented") %>%
+  ggplot() +
+  geom_point(dat = filter(dat, precip > 0), aes(x = b_weight, y = prop, size = precip+0.2), colour = nuwcru::blue4) +
+  geom_point(dat = filter(dat, precip == 0), aes(x = b_weight, y = prop, size = precip+0.2)) +
+  #geom_text(data = filter(labels, state == 1), aes(x = 2400, y = 0.85, label = "rainy day"),  colour = nuwcru::blue4, size = 5) +
+  #facet_grid(trt~.) +
+  xlab("brood weight") + ylab("proportion of the day an adult was at the nest") +
+  theme_nuwcru() + facet_nuwcru() + theme(legend.position = "None")
+
+
+t %>%
+  filter(trt == "supplemented")
 
 
 # m1. precip ------------------------------------------------------------------
