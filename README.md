@@ -29,7 +29,9 @@ As nestlings age and develop, their energy requirements increase and parents hav
   <img src="documents/dag.drawio.svg" width="500" />
 </p>
 
-
+## Modeling
+  
+Two options to be explored next. In visualizing the data, we can clearly see that nest attendance decreases with brood size/age, but this trend is interrupted during rain events, during which nest attendance increases. The relationship between brood age/size and nest attendance is nonlinear, so we can approximate the relationship using nonlinear regression. There are a number of interacting elements however, and I want to also explore the use of bayes nets to learn and estimate the overall DAG structure.
 
 ## Status
 On-going.
@@ -41,7 +43,5 @@ CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy wit
 
 Errors made in manual annotation are propogated in the CNN. Eventually, it would be nice to build methods that can account for imperfect estimates of brood size, but for now, we'll use brood size information as determined by physical nest visits.
   
-## Modeling
-  
-Two options to be explored next. In visualizing the data, we can clearly see that nest attendance decreases with brood size/age, but this trend is interrupted during rain events, where parents are detected at the nest more frequently. The relationship between brood age/size and nest attendance is nonlinear, so we can approximate the relationship using nonlinear regression. There are a number of interacting elements however, and I want to also explore the use of belief nets to learn and estimate the overall DAG structure.
+
 
