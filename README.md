@@ -33,8 +33,7 @@ As nestlings age and develop, their energy requirements increase and parents hav
   
 Two options to be explored next. In visualizing the data, we can clearly see that nest attendance decreases with brood size/age, but this trend is interrupted during rain events, during which nest attendance increases. The relationship between brood age/size and nest attendance is nonlinear, so we can approximate the relationship using nonlinear regression. There are a number of interacting elements however, and I want to also explore the use of bayes nets to learn and estimate the overall DAG structure.
 
-## Status
-On-going.
+## Nestlings
 
 CNN has been trained and is achieving 97% accuracy with adults, 92% accuracy with eggs, and band classes. Nestlings are more difficult (currently at 75%), see below. Nestling inaccuracies likely stem from human error during annotation. When shown random images containing nestlings, it's often very difficult to differentiate individuals in the image due to overexposure.
 
