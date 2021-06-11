@@ -16,7 +16,7 @@ Here, we build a CNN capable of accurately detecting four main classes: **Peregr
 <br>
 <br> 
 
-<<<<<<< HEAD
+
 ### Concept DAG
 To demonstrate how the CNN can be used with this dataset, we look at nest attendance among breeding pairs of PEFA. After nestlings hatch, they are unable to independantly thermoregulate and therefore rely on warmth/shelter provided by brooding from their parents. Time spent brooding means less time available to the parents for hunting and self maintenance. This is likely a manageable tradeoff at the early stages of brood rearing as nestlings have relatively low energetic requirements.
 
@@ -26,14 +26,13 @@ In less favourable weather, parents therefore enter some tricky decision making 
  * __Risk to brood from food limitation__. If a brood is already severely food limited, and a lack of energy poses an immediate threat, parents may opt to continue hunting. The state of food limitation (and thus decision making) is likely linked to energetic requirements of the brood (age, brood size), and food availability leading up to the inclement weather (seasonal conditions, prey population state).
  * __Risk to brood from weather event__. If the weather event poses a greater risk to brood reduction, we predict that the adult would prioritize brooding. The susceptability of the brood to weather is linked to brood age (thermoregulatory ability), brood size (huddling ability), brood condition, and environmental conditions (temperature, rain intensity, etc.).
  * __Adult condition__. If times are tough, adult condition reaches a lower limit where self maintenance may take precedence. This is likely linked to seasonal conditions and overall prey availability leading up to the weather event.
-=======
+
 ### Concept 
 To demonstrate how the CNN can be used with this dataset, we look at nest attendance among breeding pairs of PEFA. After nestlings hatch, they are unable to independantly thermoregulate and rely on warmth/shelter from their parents. Time that parents allocate to brooding is time not spent hunting or self maintenaning. This is likely a manageable tradeoff at the early stages of brood rearing as nestlings have relatively low energetic requirements.
 
 As nestlings age and develop, their energy requirements increase and parents have to shift their time allocation to keep up with the increasing energetic demands. This coincides with nestling's increasing ability to thermoregulate (they reach full independance by 21 days of age), which reduces the risk of exposure and permits the parents to spend more time away from the nest with less risk. This is all great under ideal circumstances, however the north is experiencing increased frequency in inclement weather events (ie. heavy rainfall). When the nestling's down gets wet, they become much more susceptible to lower temperatures, which can lead to mortality. The risk of brood reduction due to rainfall is buffered by parental sheltering, but again, time allocated to sheltering is time taken away from food acquisition. In these circumstances, we enter some tricky decision making territory for adults. How they decide to allocate their time depends on a couple factors: 
  * Tradeoff between starvation risk and exposure risk
  * Adult condition. If times are tough, adult condition reaches a lower limit where self maintenance takes precedence. 
->>>>>>> fc86e572ef0eb748c7ba60943bc924f1e5339b28
 
 
 
@@ -65,13 +64,17 @@ To examine this network of effects, we use a Bayesian Network.
 
 ### 1. Non-linear model
 
-The first step was to model the relationship between daily nest attendance (total minutes adult detected at the nest / total minutes in a day) and a few metrics that represented brood development. I started by modeling nest attedance against total brood weight. Total brood weight provided a single covariate summary of brood age, and clutch size, and I hoped that it would simplify the modeling process as a result. It did, but I wasn't happy with the fact that total brood weight could represent drastically different realities. For example, a brood weight of 150 could be a single 10 day old nestling, or a full clutch of 3 day old nestlings. Both scenarios demand drastically different parental behaviours.
+The first step was to model the relationship between daily nest attendance (total minutes adult detected at the nest / total minutes in a day) and a few metrics that represented brood independance. I started by modeling nest attedance against total brood weight. Total brood weight provided a single covariate summary of brood age, and clutch size, and I hoped that it would simplify the modeling process as a result. It did, but I wasn't happy with the fact that total brood weight could represent drastically different realities. For example, a brood weight of 150 could be a single 10 day old nestling, or a full clutch of 3 day old nestlings. Both scenarios demand drastically different parental behaviours.
 
 No matter what I used to model nest attendance against, it was clear that the relationships were all non-linear. Furthermore, our response variable was in the scale of proportions, and contained *both* zeros and ones. I thought about using a zero-one-inflated Beta model with a non-linear structure, but instead chose to use a negative logistic function and constrained the function to predict in the 0 <= >= 1 range. 
 
-Model diagnostics look good, and skipping to the punch line, estimates indicate that in all scenarios, supplemented broods enjoy increased parental attendance. By all scenarios, I mean all clutch sizes, across all ages, across a number of different rainfall scenarios. The rainfall scenarios are where the increased nest attendance really shows up, which follows our predictions.
+Model diagnostics look good, and skipping to the punch line, estimates indicate that in all scenarios, supplemented broods enjoy increased parental attendance. By all scenarios, I mean all clutch sizes, across all ages, across a number of different rainfall scenarios. The rainfall scenarios are where the increased nest attendance really shows up, which follows our predictions. I'll flesh these visuals out, but for starters, here is a range of nest attendance predictions for a clutch of four nestlings at various ages when the daily rainfall totals 6-10mm.
+
+I'd like to supplement this with a visual of nestling mortality in this scenario across all ages so we can investigate links between nest attendance and mortality.
 
 <p float="center">
-  <img src="R/figures/NL_model_red.JPG" width="400" />
+  <img src="R/figures/NL_model_red.png" width="400" />
 </p>
 
+### 2. Bayesian Nets
+This section is to really solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear models are finalized (very soon).s
