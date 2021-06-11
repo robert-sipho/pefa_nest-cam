@@ -58,45 +58,45 @@ all_2016 <- all_2016 %>%
 # the strategy will be to find NAs, and fill them with sources that actually have date info
 # we 
 
-exif <- arrow::read_parquet("/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_image-class/R/data/metadata/meta_2016.parquet")
-exif <- exif %>% select(SourceFile, FileModifyDate)
-exif$SourceFile <- str_replace(exif$SourceFile, "/Volumes/", "")
-exif$SourceFile <- str_replace(exif$SourceFile, "//", "/")
-
-# manipulate to make conversion to date easier
-all_2016$meta_date <- str_replace_all(all_2016$meta_date, " AM", "")
-all_2016$meta_date <- str_replace_all(all_2016$meta_date, " PM", "")
-
-
-# all_2016$date <- lubridate::parse_date_time(all_2016$meta_date, "y-m-d h:M:s")
-all_2016$date <- all_2016$meta_date
-all_2016 %>% filter(str_detect(date, "NA"))
-
-# Split all_2016 into 2, one df where dates are missing (a), and one where dates are present (b)
-
-    b <- all_2016 %>% filter(!str_detect(date, "NA"))
-    a <- all_2016 %>% filter(str_detect(date, "NA"))
-         # parse to date
-         a$date <- str_sub(a$Image_name.x, 
-                                       str_locate(a$Image_name.x, "/2016")[,1]+1)
-         a$date <- str_replace_all(a$date, ".JPG", "")
-         a$date <- lubridate::parse_date_time(a$date, "y-m-d h-M-s")
-         a$SourceFile <- str_replace(a$Image_name.x, "/media/robert/", "")
-         
-         join_exif_a <- a %>% inner_join(exif, by = "SourceFile")
-         join_exif_a$FileModifyDate <- str_sub(join_exif_a$FileModifyDate, 0, str_locate(join_exif_a$FileModifyDate, "-")[,1]-1)
-         join_exif_a$FileModifyDate <- lubridate::parse_date_time(join_exif_a$FileModifyDate, "y:m:d h:M:s")
-         
-         # exif dates are all 2 hours ahead of the original
-         join_exif_a$FileModifyDate  <- join_exif_a$FileModifyDate - hours(2)
-         join_exif_a$date <- join_exif_a$FileModifyDate
-         join_exif_a <- join_exif_a %>% select(-SourceFile, -FileModifyDate)
-         names(join_exif_a)
-         names(b)
-         test <- rbind(join_exif_a, b)
-         dim(test)
-         dim(all_2016)
-all_2016 <- test %>% select("Image_name" = "Image_name.x", everything(), -Image_name.y)
+# exif <- arrow::read_parquet("/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/NuWCRU/krmp_image-class/R/data/metadata/meta_2016.parquet")
+# exif <- exif %>% select(SourceFile, FileModifyDate)
+# exif$SourceFile <- str_replace(exif$SourceFile, "/Volumes/", "")
+# exif$SourceFile <- str_replace(exif$SourceFile, "//", "/")
+# 
+# # manipulate to make conversion to date easier
+# all_2016$meta_date <- str_replace_all(all_2016$meta_date, " AM", "")
+# all_2016$meta_date <- str_replace_all(all_2016$meta_date, " PM", "")
+# 
+# 
+# # all_2016$date <- lubridate::parse_date_time(all_2016$meta_date, "y-m-d h:M:s")
+# all_2016$date <- all_2016$meta_date
+# all_2016 %>% filter(str_detect(date, "NA"))
+# 
+# # Split all_2016 into 2, one df where dates are missing (a), and one where dates are present (b)
+# 
+#     b <- all_2016 %>% filter(!str_detect(date, "NA"))
+#     a <- all_2016 %>% filter(str_detect(date, "NA"))
+#          # parse to date
+#          a$date <- str_sub(a$Image_name.x, 
+#                                        str_locate(a$Image_name.x, "/2016")[,1]+1)
+#          a$date <- str_replace_all(a$date, ".JPG", "")
+#          a$date <- lubridate::parse_date_time(a$date, "y-m-d h-M-s")
+#          a$SourceFile <- str_replace(a$Image_name.x, "/media/robert/", "")
+#          
+#          join_exif_a <- a %>% inner_join(exif, by = "SourceFile")
+#          join_exif_a$FileModifyDate <- str_sub(join_exif_a$FileModifyDate, 0, str_locate(join_exif_a$FileModifyDate, "-")[,1]-1)
+#          join_exif_a$FileModifyDate <- lubridate::parse_date_time(join_exif_a$FileModifyDate, "y:m:d h:M:s")
+#          
+#          # exif dates are all 2 hours ahead of the original
+#          join_exif_a$FileModifyDate  <- join_exif_a$FileModifyDate - hours(2)
+#          join_exif_a$date <- join_exif_a$FileModifyDate
+#          join_exif_a <- join_exif_a %>% select(-SourceFile, -FileModifyDate)
+#          names(join_exif_a)
+#          names(b)
+#          test <- rbind(join_exif_a, b)
+#          dim(test)
+#          dim(all_2016)
+# all_2016 <- test %>% select("Image_name" = "Image_name.x", everything(), -Image_name.y)
 
 all_2016$yday <- yday(all_2016$date)
 all_2016$hour <- hour(all_2016$date)
@@ -183,9 +183,19 @@ all_t %>% mutate(date = date(date)) %>% group_by(site, date) %>% summarize(sum =
 # **expand to minute resolution ---------------------------------------
 
 # create a new datafame which rounds to minute, and summarizes presence within that minute
-a <- all_t %>% mutate(dateR = round_date(date, unit = "min")) %>% 
-  group_by(dateR, site) %>% summarize(sum = sum(adult)) %>% rename("date" = "dateR") %>%
-  mutate(pres = ifelse(sum >= 1, 1, 0)) %>% select(-sum) %>% arrange(desc(site)) 
+a <- all_t %>% 
+  mutate(dateR = round_date(date, unit = "min")) %>% 
+  group_by(dateR, site) %>% 
+  summarize(sum_adult = sum(adult), sum_nestling = sum(nestling)) %>% 
+  rename("datetime" = "dateR") %>%
+  mutate(pres_adult = ifelse(sum_adult >= 1, 1, 0),
+         pres_nestling = ifelse(sum_nestling >= 1, 1, 0)) %>% 
+  select(-sum_adult, -sum_nestling) %>% 
+  arrange(desc(site)) %>%
+  mutate(date = as.Date(datetime))
+
+
+
 
 # Create new date frame with all minutes between min and max dates    
 empty_dates <- tibble(date = seq(min(all_t$date, na.rm = TRUE), max(all_t$date, na.rm=TRUE), by = "1 mins")) %>%

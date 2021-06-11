@@ -130,7 +130,7 @@ all_t <- all_2015 %>% mutate(adult    = rowSums(.[5:40] == "adult", na.rm = TRUE
 
 # nestling work -----------------------------------------------------------
 
-@
+
 nestling_info <- piv1[which(piv1$value == "nestling"),]
 nestling_info[,4] <- piv1[which(piv1$value == "nestling")+1,3]
 nestling_info[,5] <- piv1[which(piv1$value == "nestling")+2,3]
