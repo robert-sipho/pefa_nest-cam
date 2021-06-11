@@ -1,5 +1,8 @@
 ### Thought Process
 
+** No longer relying on CNN to estimate nestling counts** - saving this as a future project. **
+
+
 In training the CNN, we can obtain the weights optimized at various stages. The concept here is that we can potentially use the collection of weights to generate numerous predictions per image.
 
 <p float="center">
