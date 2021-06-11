@@ -73,8 +73,8 @@ Model diagnostics look good, and skipping to the punch line, estimates indicate 
 I'd like to supplement this with a visual of nestling mortality in this scenario across all ages so we can investigate links between nest attendance and mortality.
 
 <p float="center">
-  <img src="R/figures/NL_model_red.png" width="400" />
+  <img src="R/figures/NL_model_red.png" width="700" />
 </p>
 
 ### 2. Bayesian Nets
-This section is to really solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear models are finalized (very soon).s
+This section is to really solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear models are finalized (very soon).
