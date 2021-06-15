@@ -1,0 +1,30 @@
+
+        model {
+
+        # priors for betas
+          b0~dunif(-5,5)
+         # b.rh~dunif(-5,5)
+         # b.trt~dunif(-5,5)
+          #b.rain~dunif(-5,5)
+          b_age~dunif(-5,5)
+        
+        # priors for sigma
+          sigmaplot~dunif(0,7)
+          tauplot <- sqrt(1/(sigmaplot*sigmaplot))
+        
+        # priors for random effects
+          for(i in 1:n_site){alpha[i]~dnorm(0,tauplot)}
+        
+        # Likelihood, for ith individual, and jth time interval # 
+          for(i in 1:nind){
+          for(j in (first[i]+1):last[i]){
+            logit(phi[i,j]) <- b0  + b_age*age[i,j] + alpha[site[i]]
+
+            mu[i,j] <- phi[i,j] * y[i,j-1]
+            y[i,j]   ~ dbern(mu[i,j])
+
+            }
+          }
+        }
+
+        

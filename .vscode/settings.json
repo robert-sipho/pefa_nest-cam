@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "/Volumes/GoogleDrive/My Drive/NuWCRU/Analysis/emhedlin/nuwcru/krmp_db/raptor_db.db",
+            "name": "test"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

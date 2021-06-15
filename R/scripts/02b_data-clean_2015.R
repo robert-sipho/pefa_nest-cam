@@ -95,8 +95,8 @@ join_exif_a$FileModifyDate <- lubridate::parse_date_time(join_exif_a$FileModifyD
 join_exif_a$FileModifyDate  <- join_exif_a$FileModifyDate + hours(1)
 join_exif_a$date <- join_exif_a$FileModifyDate
 join_exif_a <- join_exif_a %>% select(-SourceFile, -FileModifyDate)
-names(join_exif_a)
-names(b)
+
+
 test <- rbind(join_exif_a, b)
 
 dim(test)

@@ -40,7 +40,7 @@ all_2016 <- do.call(rbind, lapply(f, arrow::read_parquet))
 # work with metadata so we can rename appropriate filenames ---------------
 meta <- arrow::read_parquet("data/00_meta/clean_meta_2016_new.parquet")
 
-meta$SourceFile
+
 # match patterns in yolo outs with exifs
 meta$to_match <- str_sub(meta$SourceFile, str_locate(meta$SourceFile, "//")[,1]+2)
 all_2016$to_match <- str_sub(all_2016$Image_name, str_locate(tolower(all_2016$Image_name), "/site")[,1]+1)
@@ -49,7 +49,6 @@ all_2016$to_match <- str_sub(all_2016$Image_name, str_locate(tolower(all_2016$Im
 all_2016 <- all_2016 %>% 
   left_join(meta, by = "to_match") %>%
   mutate()
-
 
 
 # Date --------------------------------------------------------------------

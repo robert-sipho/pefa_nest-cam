@@ -77,7 +77,7 @@ labels = tibble(
 
   # too few observations at brood size = 5
   # calculate brood age
-t <- t %>% 
+t <- x %>% 
     filter(!is.na(precip)) %>%
     filter(b_size != 5) %>%
     filter(b_weight > 0) %>%
@@ -88,7 +88,10 @@ t <- t %>%
       precip == 0 ~ "0",
       precip > 0 & precip < 6  ~ "1_5",
       precip > 5 & precip < 11 ~ "6_10",
-      precip > 10 ~ ">10"))
+      precip > 10 ~ ">10")) %>%
+  mutate(treatment = as.factor(treatment))
+
+
 
   
 m <- brm(
@@ -127,7 +130,7 @@ pred <- t %>%
 
 unique(post$precip_disc)
 # subset and create labels for plotting
-precip <- "6_10"
+precip <- ">10"
 precip_label <- " = 6 - 10mm"
 clutch <- 4
 
@@ -137,8 +140,20 @@ control <- filter(post, treatment == 0 &
 supplemented <- filter(post, treatment == 1 & 
                              precip_disc %in% precip & 
                              b_size %in% clutch)
+
+raw_supplemented <- filter(t, treatment == 1 & 
+                             precip_disc %in% precip & 
+                             b_size %in% clutch)
+raw_control <- filter(t, treatment == 0 & 
+                        precip_disc %in% precip & 
+                        b_size %in% clutch)
 # plot
   ggplot() +
+    
+    geom_point(data = raw_control,
+               aes(x = b_age, y = prop), colour = signal_blue8) +
+    geom_point(data = raw_supplemented,
+               aes(x = b_age, y = prop), colour = signal_yellow6) +
     # control
     geom_segment(data = control, 
                 aes(x = b_age+0.2, xend = b_age+0.2, y = lower95, yend = upper95), colour = signal_blue6, alpha = 0.2) + 
@@ -175,4 +190,55 @@ supplemented <- filter(post, treatment == 1 &
     hedlin_theme() + 
     theme(axis.title.x = element_text(size = 12, colour = signal_blue5),
           axis.title.y = element_text(size = 12, colour = signal_blue5))
+  
+
+# nestling mortality rates ----
+  
+  d <- read_csv("data/03_daily_survival.csv") %>% 
+    select(-X1) 
+  
+  test <- d %>% expand(ind = ind, age = seq(1,30,1)) %>% 
+    left_join(select(d, ind, age, alive), by = c("ind", "age")) %>%
+    mutate(alive = ifelse(is.na(alive), 0,alive))
+  
+  View(test %>% filter(ind %in% unique(test$ind)[3]))
+
+  
+  library(rstan)
+  rstan_options(auto_write = TRUE)
+  options(mc.cores = parallel::detectCores())
+  set.seed(123)
+  
+  ## Read data
+  ## The data generation code is in bpa-code.txt, available at
+  ## http://www.vogelwarte.ch/de/projekte/publikationen/bpa/complete-code-and-data-files-of-the-book.html
+  stan_data <- list(
+    y = 
+      nind = 
+      n_occasions = 
+      x = 
+      max_age = 
+  )
+  
+  ## Parameters monitored
+  params <- c("beta")
+  
+  ## MCMC settings
+  ni <- 2000
+  nt <- 1
+  nb <- 1000
+  nc <- 4
+  
+  ## Initial values
+  inits <- function() list(beta = runif(2, 0, 1))
+  
+  ## Call Stan from R
+  cjs_age  <- stan("cjs_age.stan",
+                   data = stan_data, init = inits, pars = params,
+                   chains = nc, iter = ni, warmup = nb, thin = nt,
+                   seed = 1,
+                   open_progress = FALSE)
+  
+  ## Summarize posteriors
+  print(cjs_age, digits = 3)
   

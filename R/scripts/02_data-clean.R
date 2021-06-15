@@ -5,10 +5,10 @@ library(stringr)
 library(nuwcru)
 library(zoo)
 library(nuwcru)
-library(weathercan)
-stations_search("Rankin Inlet")
-weather <- weather_dl(station_ids = 51277, start = "2015-06-25", end = "2017-04-15", format = FALSE)
-?weather_dl
+
+
+
+
 # load data
 clim <- read_csv("data/weather_1981-2019.csv") %>% select(-X1)
 trt <- read_csv("data/trt.csv") %>% rename("site" = "NEST", "year" = "YEAR", "trt" = "TREATMENT")
