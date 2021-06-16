@@ -80,4 +80,4 @@ I'd like to supplement this with a visual of nestling mortality in this scenario
 To investigate potential benefits of higher nest attendance, we'll model the daily survival of each nestling according to age, brood size, rain, and parental attendance using known-fate models.
 
 ### 2. Bayesian Nets
-If necessary, this bayes nets can be used to solidfy the causal pathways between interacting covariates (conditional probabilities) that link nest attendance with nestling survival. I'll work on this after non-linear models/known-fates are finalized (very soon).
+If necessary, bayes nets can be used to solidfy the causal pathways between interacting covariates (conditional probabilities) that link nest attendance with nestling survival. I'll work on this after non-linear models/known-fates are finalized (very soon).
