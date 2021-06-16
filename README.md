@@ -68,7 +68,7 @@ The first step was to model the relationship between daily nest attendance (tota
 
 No matter what I used to model nest attendance against, it was clear that the relationships were all non-linear. Furthermore, our response variable was in the scale of proportions, and contained *both* zeros and ones. I thought about using a zero-one-inflated Beta model with a non-linear structure, but instead chose to use a negative logistic function and constrained the function to predict in the 0 <= y <= 1 range. 
 
-Model diagnostics look good, and skipping to the punch line, estimates indicate that in all scenarios, supplemented broods enjoy increased parental attendance. By all scenarios, I mean all clutch sizes, across all ages, across a number of different rainfall scenarios. The rainfall scenarios are where the increased nest attendance really shows up, which follows our predictions. I'll flesh these visuals out, but for starters, here is a range of nest attendance predictions for a clutch of four nestlings at various ages when the daily rainfall totals 6-10mm.
+Model diagnostics look good, and skipping to the punch line, estimates indicate that in all scenarios, supplemented broods enjoy increased parental attendance. By all scenarios, I mean all clutch sizes, across all ages, across a number of different rainfall scenarios. Increased nest attendance was more pronounced in the various rainfall scenarios, which follows our predictions and offers a potential explanation for increased nestling survival among nestlings in supplemented broods. I'll flesh these visuals out later, but for starters, here is a range of nest attendance predictions for a clutch of four nestlings at various ages when the daily rainfall totals 6-10mm.
 
 I'd like to supplement this with a visual of nestling mortality in this scenario across all ages so we can investigate links between nest attendance and mortality.
 
@@ -76,5 +76,8 @@ I'd like to supplement this with a visual of nestling mortality in this scenario
   <img src="R/figures/NL_model_red.png" width="700" />
 </p>
 
+### 1a. known-fate survival
+To investigate potential benefits of higher nest attendance, we'll model the daily survival of each nestling according to age, brood size, rain, and parental attendance using known-fate models.
+
 ### 2. Bayesian Nets
-This section is to really solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear models are finalized (very soon).
+If necessary, this bayes nets can be used to solidfy the causal pathways between interacting covariates (conditional probabilities) that link nest attendance with nestling survival. I'll work on this after non-linear models/known-fates are finalized (very soon).
