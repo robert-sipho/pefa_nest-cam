@@ -192,53 +192,72 @@ raw_control <- filter(t, treatment == 0 &
           axis.title.y = element_text(size = 12, colour = signal_blue5))
   
 
-# nestling mortality rates ----
+
+# Known Fate Survival -----------------------------------------------------
+
+  library(cmdstanr)
+  # install_cmdstan()
+  set_cmdstan_path()
+  
   
   d <- read_csv("data/03_daily_survival.csv") %>% 
     select(-X1) 
   
-  test <- d %>% expand(ind = ind, age = seq(1,30,1)) %>% 
+  obs_hist <- d %>% expand(ind = ind, age = seq(1,30,1)) %>% 
     left_join(select(d, ind, age, alive), by = c("ind", "age")) %>%
     mutate(alive = ifelse(is.na(alive), 0,alive))
   
-  View(test %>% filter(ind %in% unique(test$ind)[3]))
+  y <- obs_hist %>%
+    #select(-age) %>%
+    pivot_wider(names_from = age, values_from = alive)
+  y_mat <- as.matrix(y[,2:ncol(y)])
+  
+  age <- obs_hist %>%
+    #select(-age) %>%
+    pivot_wider(alive)
 
+
+year <- obs_hist %>%
+  filter(!duplicated(ind)) %>%
+  mutate(year = as.numeric(str_sub(ind, -2)) - 12) %>%
+  pull(year)
+
+
+last <- rowSums(y_mat)
+last <- ifelse(last < 30, last+1, last)
   
-  library(rstan)
-  rstan_options(auto_write = TRUE)
-  options(mc.cores = parallel::detectCores())
-  set.seed(123)
-  
-  ## Read data
-  ## The data generation code is in bpa-code.txt, available at
-  ## http://www.vogelwarte.ch/de/projekte/publikationen/bpa/complete-code-and-data-files-of-the-book.html
   stan_data <- list(
-    y = 
-      nind = 
-      n_occasions = 
-      x = 
-      max_age = 
-  )
+    y      = as.matrix(y[,2:ncol(y)]),
+    n_ind  = nrow(y),
+    n_years = 5,
+    year = year,
+    last   = last,
+    first  = first,
+    age    = 1:30,
+    max_age = 30)
+  
   
   ## Parameters monitored
-  params <- c("beta")
+  params <- c("b0", "b_age")
   
-  ## MCMC settings
-  ni <- 2000
-  nt <- 1
-  nb <- 1000
-  nc <- 4
-  
+
   ## Initial values
-  inits <- function() list(beta = runif(2, 0, 1))
+  inits <- function() list(b0 = runif(1, 0, 1),
+                           b_age = runif(1, 0, 1))
   
-  ## Call Stan from R
-  cjs_age  <- stan("cjs_age.stan",
-                   data = stan_data, init = inits, pars = params,
-                   chains = nc, iter = ni, warmup = nb, thin = nt,
-                   seed = 1,
-                   open_progress = FALSE)
   
-  ## Summarize posteriors
-  print(cjs_age, digits = 3)
+  file <- file.path("models","known_fate.stan")
+  mod <- cmdstan_model(file)
+  
+  fit_mcmc <- mod$sample(
+    data = stan_data,
+    seed = 123,
+    chains = 4,
+    chains = 4,
+    iter_warmup = 1000,
+    iter_sampling = 2000,
+    thin = 1,
+    parallel_chains = 4
+  )
+  
   

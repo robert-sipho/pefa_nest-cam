@@ -24,13 +24,13 @@ parameters {
 
 transformed parameters {
     matrix<lower=0,upper=1>[nind, n_occ_minus_1] phi;
-    matrix<lower=0,upper=1>[nind, n_occ_minus_1] mu;
+    //matrix<lower=0,upper=1>[nind, n_occ_minus_1] mu;
     real b0 = logit(mean_phi);
 
     for (i in 1:nind){
         for (t in 1:n_occ_minus_1){
             phi[i,t] = inv_logit(b0 + beta[t] * age[t] + epsilon_year[year[i]]);
-            mu[i,t] = phi[i,t] * y[i,t-1];
+            //mu[i,t] = phi[i,t+1] * y[i,t];
         }
     }
 }
@@ -41,19 +41,19 @@ model {
 
     for (i in 1:nind){
         for (t in 2:last[i]){
-            y[i,t] ~ bernoulli(mu[i,t]);
+            y[i,t] ~ bernoulli(phi[i,t-1]);
         }
     }
 }
 
-generated quantities {
-    real<lower=0> sigma2;
-    vector<lower=0,upper=1>[n_occ_minus_1] phi_est;
-
-    sigma2 = square(sigma);
-    for (i in 1:nind){
-        for (t in 1:n_occ_minus_1){
-            phi_est[t] = inv_logit(mu + beta[t] * age[t] + epsilon_year[year[i]]); // age dependant surv
-        }
-    }
-}
+//generated quantities {
+//    real<lower=0> sigma2;
+//    vector<lower=0,upper=1>[n_occ_minus_1] phi_est;
+//
+//    sigma2 = square(sigma);
+//    for (i in 1:nind){
+//        for (t in 1:n_occ_minus_1){
+//            phi_est[t] = inv_logit(mu + beta[t] * age[t] + epsilon_year[year[i]]); // age dependant surv
+//        }
+//    }
+//}
