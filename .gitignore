@@ -6,7 +6,7 @@ python/verification_gui/verification_results
 
 *.synctex.gz
 *.log
-manuscript/
+
 
 # History files
 .Rhistory
@@ -47,6 +47,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+manuscript/
+R/
 
 # Latex files
 *.bbl
