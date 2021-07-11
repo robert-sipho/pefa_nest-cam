@@ -19,7 +19,7 @@ getmode <- function(x) {
 dat <- do.call(rbind, 
                lapply(c(#"data/02_2013_prop.csv","data/02_2014_prop.csv",
                  "data/02_2015_prop.csv", "data/02_2016_prop.csv","data/02_2017_prop.csv"), read_csv)) %>% 
-  select(-X1, -trt) %>% mutate(yday = yday(date))
+  dplyr::select(-X1, -trt)
 
 test <- read_csv("data/02_2016_prop.csv")
 
@@ -194,11 +194,18 @@ raw_control <- filter(t, treatment == 0 &
 
 
 # Known Fate Survival -----------------------------------------------------
-
+  # https://tobiasroth.github.io/BDAEcology/dailynestsurv.html#check-convergence
+  
   library(cmdstanr)
-  # install_cmdstan()
   set_cmdstan_path()
   
+  # merge weather in with survival data
+  d_weather <- d %>% 
+    select(-year) %>%
+    right_join(dat, by = c("date", "site")) %>%
+    mutate(unique_id = paste(date, ind, sep = "_")) %>%
+    filter(!duplicated(unique_id)) %>%
+    select(-unique_id)
   
   d <- read_csv("data/03_daily_survival.csv") %>% 
     select(-X1) 
@@ -212,9 +219,7 @@ raw_control <- filter(t, treatment == 0 &
     pivot_wider(names_from = age, values_from = alive)
   y_mat <- as.matrix(y[,2:ncol(y)])
   
-  age <- obs_hist %>%
-    #select(-age) %>%
-    pivot_wider(alive)
+  
 
 
 year <- obs_hist %>%
@@ -232,7 +237,7 @@ last <- ifelse(last < 30, last+1, last)
     n_years = 5,
     year = year,
     last   = last,
-    first  = first,
+    first  = rep(1, nrow(y)),
     age    = 1:30,
     max_age = 30)
   
@@ -248,16 +253,30 @@ last <- ifelse(last < 30, last+1, last)
   
   file <- file.path("models","known_fate.stan")
   mod <- cmdstan_model(file)
+  mod_recompile <- mod$compile(force_recompile = TRUE, cpp_options = list(stan_threads = TRUE))
   
-  fit_mcmc <- mod$sample(
+  fit_mcmc2 <- mod_recompile$sample(
     data = stan_data,
     seed = 123,
-    chains = 4,
-    chains = 4,
-    iter_warmup = 1000,
-    iter_sampling = 2000,
+    chains = 2,
+    iter_warmup = 500,
+    iter_sampling = 1000,
+    threads_per_chain = 8,
     thin = 1,
-    parallel_chains = 4
-  )
+    parallel_chains = 2,
+    adapt_delta = 0.99,
+    max_treedepth = 11)
+  
+  draws <- fit_mcmc2$draws() %>% 
+    as_draws_df()
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   

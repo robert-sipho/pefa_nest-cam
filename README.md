@@ -62,7 +62,7 @@ Ultimately, we want to model nest attendance and the downstream effects attendan
 To examine this network of effects, we use a Bayesian Network.
 
 
-### 1. Non-linear model
+### 1a. Non-linear model
 
 The first step was to model the relationship between daily nest attendance (total minutes adult detected at the nest / total minutes in a day) and a few metrics that represented brood development. I started by modeling nest attedance against total brood weight. Total brood weight provided a single covariate summary of brood age, and clutch size, and I hoped that it would simplify the modeling process as a result. It did, but I wasn't happy with the fact that total brood weight could represent drastically different realities. For example, a brood weight of 150 could be a single 10 day old nestling, or a full clutch of 3 day old nestlings. Both scenarios demand drastically different parental behaviours.
 
@@ -76,5 +76,26 @@ I'd like to supplement this with a visual of nestling mortality in this scenario
   <img src="R/figures/NL_model_red.png" width="700" />
 </p>
 
+### 1b. Daily nestling survival - known-fate model
+Results from the non-linear model indicate that parents spend more time at the nest when they are food supplemented. Intuitively, we might expect this could result in boosted nestling survival due to sheltering (brooding) and reduced thermoregulatory costs. If parents can successfully brood their young during inclement weather for example, nestling's down may remain dry and maintain the insulation qualities that could make the difference between surviving or succumbing to a heavy rainfall event. To help us make this intuitively leap, we'll model the daily survival probabilities of nestlings according to nestling age, rainfall, and daily nest attendance. 
+
+We'll do this using known-fate survival models, which model the probability of surviving one time step to another (markovian). More explicitly, this looks like:
+
+<!-- $$
+\begin{align}
+&y_{it} \sim \textrm{Bernoulli}(y_{i,t-1} S_{it}) \\
+&\textrm{logit}(S_{it}) = X\beta
+\end{align}
+$$ --> 
+
+<div align="center"><img src="svg/QDAF9vx3qc.svg"></div>
+
+
+
+Where y = the observed state (dead or alive) of nestling *i* at time *t*, and S = the daily survival. Using this formulation, we can model daily nestling survival with linear predictors and add non-linear terms if necessary.
+There is a lot of freedom to explore links between nest attendance, supplementation, and nestling survival, and fleshing this model out will help us more explicitly link nest attendance with nestling survival.
+
+
+
 ### 2. Bayesian Nets
-This section is to really solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear models are finalized (very soon).
+Bayesian nets may or may not be needed, but could be used to further solidfy the causal pathways between interacting covariates, nest attendance, and ultimately nestling survival. I'll work on this after non-linear and known-fate models are finalized, maybe.
