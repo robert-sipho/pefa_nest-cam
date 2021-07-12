@@ -77,9 +77,9 @@ I'd like to supplement this with a visual of nestling mortality in this scenario
 </p>
 
 ### 1b. Daily nestling survival - known-fate model
-Results from the non-linear model indicate that parents spend more time at the nest when they are food supplemented. Intuitively, we might expect this could result in boosted nestling survival due to sheltering (brooding) and reduced thermoregulatory costs. If parents can successfully brood their young during inclement weather for example, nestling's down may remain dry and maintain the insulation qualities that could make the difference between surviving or succumbing to a heavy rainfall event. To help us make this intuitively leap, we'll model the daily survival probabilities of nestlings according to nestling age, rainfall, and daily nest attendance. 
+Results from the non-linear model indicate that parents spend more time at the nest when they are food supplemented. Intuitively, we might expect this could result in boosted nestling survival due to sheltering (brooding) and reduced thermoregulatory costs. If parents can successfully brood their young during inclement weather for example, nestling's down may remain dry and maintain the insulation qualities that could make the difference between surviving or succumbing to a heavy rainfall event. To help us make this leap, we'll model the daily survival probabilities of nestlings according to nestling age, rainfall, and daily nest attendance. 
 
-We'll do this using known-fate survival models, which model the probability of surviving one time step to another (markovian). More explicitly, this looks like:
+We'll do this using known-fate survival models, which model the probability of surviving one time step to another (markovian). This looks like:
 
 <!-- $$
 \begin{align}
